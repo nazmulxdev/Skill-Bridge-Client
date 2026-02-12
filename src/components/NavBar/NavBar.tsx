@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ModeToggle } from "../Theme/ModeToggle";
+import BrandLogo from "../WebLogo/BrandLogo";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -29,14 +30,9 @@ export default function Navbar() {
     <>
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="mx-auto px-10 h-16 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="text-xl font-bold tracking-tight">
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              YourBrand
-            </span>
-          </Link>
-
+          <BrandLogo />
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => {
