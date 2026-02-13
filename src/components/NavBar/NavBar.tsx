@@ -8,14 +8,16 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ModeToggle } from "../Theme/ModeToggle";
 import BrandLogo from "../WebLogo/BrandLogo";
+import { Badge } from "@/components/ui/badge";
 
 const navLinks = [
   { name: "Home", href: "/" },
-  { name: "Features", href: "/features" },
-  { name: "Pricing", href: "/pricing" },
+  { name: "Teachers", href: "/teachers" },
   { name: "Contact", href: "/contact" },
-  { name: "Dashboard", href: "/dashboard" },
 ];
+
+//  Make sure this matches your dashboard layout
+const HARD_CODED_ROLE = "student";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -26,32 +28,47 @@ export default function Navbar() {
     return pathname.startsWith(href);
   };
 
+  const getDashboardLink = () => {
+    return {
+      name: "Dashboard",
+      href: `/dashboard`,
+    };
+  };
+
+  const allLinks = [...navLinks, getDashboardLink()];
+
   return (
     <>
-      {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto px-10 h-16 flex items-center justify-between">
-          {/* Logo */}
           <BrandLogo />
+
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => {
+            {allLinks.map((link) => {
               const active = isActive(link.href);
+              const isDashboard = link.name === "Dashboard";
 
               return (
                 <Link
                   key={link.name}
                   href={link.href}
                   className={cn(
-                    "relative text-sm font-medium transition-colors group",
+                    "relative text-sm font-medium transition-colors group flex items-center gap-2",
                     active
                       ? "text-primary font-semibold"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   {link.name}
-
-                  {/* Animated Underline */}
+                  {isDashboard && (
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] h-4 px-1 bg-primary/10 text-primary"
+                    >
+                      {HARD_CODED_ROLE}
+                    </Badge>
+                  )}
                   <span
                     className={cn(
                       "absolute left-0 -bottom-1 h-[2px] bg-primary transition-all duration-300",
@@ -86,7 +103,7 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Overlay */}
+      {/* Mobile Drawer*/}
       <div
         className={cn(
           "fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-300",
@@ -95,7 +112,6 @@ export default function Navbar() {
         onClick={() => setOpen(false)}
       />
 
-      {/* Side Drawer */}
       <div
         className={cn(
           "fixed top-0 right-0 h-full w-80 bg-background border-l border-border z-50 transform transition-transform duration-300 ease-in-out",
@@ -110,22 +126,24 @@ export default function Navbar() {
         </div>
 
         <div className="px-6 py-8 space-y-6">
-          {navLinks.map((link) => {
-            const active = isActive(link.href);
-
+          {allLinks.map((link) => {
+            const isDashboard = link.name === "Dashboard";
             return (
               <Link
                 key={link.name}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className={cn(
-                  "block text-base font-medium transition-colors",
-                  active
-                    ? "text-primary font-semibold"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
+                className="flex items-center justify-between text-base font-medium text-muted-foreground hover:text-foreground"
               >
-                {link.name}
+                <span>{link.name}</span>
+                {isDashboard && (
+                  <Badge
+                    variant="outline"
+                    className="bg-primary/10 text-primary"
+                  >
+                    {HARD_CODED_ROLE}
+                  </Badge>
+                )}
               </Link>
             );
           })}
