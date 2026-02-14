@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 
 const navLinks = [
   { name: "Home", href: "/" },
-  { name: "Teachers", href: "/teachers" },
+  { name: "Tutors", href: "/tutors" },
   { name: "Contact", href: "/contact" },
 ];
 

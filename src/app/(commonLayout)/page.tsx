@@ -1,3 +1,9 @@
+import { Hero } from "@/components/Home/Hero";
+
 export default function CommonPage() {
-  return <div></div>;
+  return (
+    <div>
+      <Hero />
+    </div>
+  );
 }
