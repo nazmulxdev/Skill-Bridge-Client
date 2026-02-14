@@ -34,11 +34,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import BrandLogo from "../WebLogo/BrandLogo";
 import { ModeToggle } from "../Theme/ModeToggle";
+import { Role } from "@/types";
 
 export enum ERole {
-  STUDENT = "student",
-  TUTOR = "tutor",
-  ADMIN = "admin",
+  STUDENT,
+  TUTOR,
+  ADMIN,
 }
 
 interface DashboardClientWrapperProps {
@@ -47,6 +48,10 @@ interface DashboardClientWrapperProps {
   student: React.ReactNode;
   tutor: React.ReactNode;
   userRole: string;
+  userData?: {
+    name: string;
+    email: string;
+  };
 }
 
 export function DashboardClientWrapper({
@@ -55,6 +60,7 @@ export function DashboardClientWrapper({
   student,
   tutor,
   userRole,
+  userData,
 }: DashboardClientWrapperProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
@@ -62,16 +68,18 @@ export function DashboardClientWrapper({
   // parallel routes
   const renderContent = () => {
     switch (userRole) {
-      case "admin":
+      case "ADMIN":
         return admin;
-      case "student":
+      case "STUDENT":
         return student;
-      case "tutor":
+      case "TUTOR":
         return tutor;
       default:
         return children;
     }
   };
+
+  console.log();
 
   // Navigation based on role
   const getNavigation = () => {
@@ -81,14 +89,14 @@ export function DashboardClientWrapper({
 
     // role base dashboard routes
     const roleNav = {
-      student: [
+      STUDENT: [
         { name: "Find Slots", href: "/student/slots", icon: Calendar },
         { name: "My Bookings", href: "/student/bookings", icon: Clock },
         { name: "My Tutors", href: "/student/tutors", icon: Users },
         { name: "Reviews", href: "/student/reviews", icon: Star },
         { name: "Messages", href: "/student/messages", icon: MessageSquare },
       ],
-      tutor: [
+      TUTOR: [
         { name: "My Slots", href: "/tutor/slots", icon: Calendar },
         { name: "Bookings", href: "/tutor/bookings", icon: Clock },
         { name: "Earnings", href: "/tutor/earnings", icon: DollarSign },
@@ -96,7 +104,7 @@ export function DashboardClientWrapper({
         { name: "Students", href: "/tutor/students", icon: Users },
         { name: "Messages", href: "/tutor/messages", icon: MessageSquare },
       ],
-      admin: [
+      ADMIN: [
         { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
         { name: "Students", href: "/dashboard/admin/students", icon: Users }, // Fixed: was /admin/tutor
         { name: "All Slots", href: "/admin/slots", icon: Calendar },
@@ -147,10 +155,12 @@ export function DashboardClientWrapper({
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 ring-2 ring-primary/20">
                 <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarFallback>{userData?.name.slice(0, 2)}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate">John Doe</p>
+                <p className="text-sm font-semibold truncate">
+                  {userData?.name}
+                </p>
                 <p className="text-xs text-muted-foreground capitalize">
                   {userRole}
                 </p>

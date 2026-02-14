@@ -1,4 +1,5 @@
 import { DashboardClientWrapper } from "@/components/Dashboard/DashboardLayout";
+import { authService } from "@/services/authService";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -7,21 +8,22 @@ interface DashboardLayoutProps {
   tutor: React.ReactNode;
 }
 
-// roles
-const HARD_CODED_ROLE = "student";
-
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
   admin,
   student,
   tutor,
 }: DashboardLayoutProps) {
+  const { data, error } = await authService.getSession();
+  const { role, name, email } = data?.user;
+  console.log(role);
   return (
     <DashboardClientWrapper
       admin={admin}
       student={student}
       tutor={tutor}
-      userRole={HARD_CODED_ROLE}
+      userRole={role}
+      userData={{ name, email }}
     >
       {children}
     </DashboardClientWrapper>
