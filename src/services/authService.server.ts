@@ -1,5 +1,7 @@
 import { env } from "@/env";
+import { authClient } from "@/lib/auth-client";
 import { cookies } from "next/headers";
+import { toast } from "sonner";
 
 const authUrl = env.AUTH_URL;
 export const authService = {
@@ -69,5 +71,22 @@ export const authService = {
         },
       };
     }
+  },
+  signOut: async function () {
+    const toastId = toast.loading("logout user");
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            toast.success("signout successful.", { id: toastId });
+            window.location.href = "/";
+          },
+          onError: (error) => {
+            console.error(error);
+            toast.error("Failed to sign out.", { id: toastId });
+          },
+        },
+      });
+    } catch (error) {}
   },
 };

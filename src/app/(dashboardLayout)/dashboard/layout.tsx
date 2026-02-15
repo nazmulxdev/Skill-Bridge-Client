@@ -1,5 +1,5 @@
 import { DashboardClientWrapper } from "@/components/Dashboard/DashboardLayout";
-import { authService } from "@/services/authService";
+import { authService } from "@/services/authService.server";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
