@@ -1,4 +1,3 @@
-// components/NavBar/SignOutButton.tsx
 "use client";
 
 import { useState } from "react";

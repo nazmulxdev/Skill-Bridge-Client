@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -20,6 +20,7 @@ import {
   MessageSquare,
   UserCircle,
   DollarSign,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -34,13 +35,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import BrandLogo from "../WebLogo/BrandLogo";
 import { ModeToggle } from "../Theme/ModeToggle";
-import { Role } from "@/types";
-
-export enum ERole {
-  STUDENT,
-  TUTOR,
-  ADMIN,
-}
+import { authClientService } from "@/services/authService.client";
 
 interface DashboardClientWrapperProps {
   children: React.ReactNode;
@@ -63,7 +58,22 @@ export function DashboardClientWrapper({
   userData,
 }: DashboardClientWrapperProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const pathname = usePathname();
+
+  // handle logout
+
+  const handleSignOut = async () => {
+    if (isSigningOut) return;
+
+    setIsSigningOut(true);
+    try {
+      await authClientService.signOut();
+    } catch (error) {
+      console.error("Sign out failed:", error);
+      setIsSigningOut(false);
+    }
+  };
 
   // parallel routes
   const renderContent = () => {
@@ -79,8 +89,6 @@ export function DashboardClientWrapper({
     }
   };
 
-  console.log();
-
   // Navigation based on role
   const getNavigation = () => {
     const baseNav = [
@@ -90,33 +98,61 @@ export function DashboardClientWrapper({
     // role base dashboard routes
     const roleNav = {
       STUDENT: [
-        { name: "Find Slots", href: "/student/slots", icon: Calendar },
-        { name: "My Bookings", href: "/student/bookings", icon: Clock },
-        { name: "My Tutors", href: "/student/tutors", icon: Users },
-        { name: "Reviews", href: "/student/reviews", icon: Star },
-        { name: "Messages", href: "/student/messages", icon: MessageSquare },
+        {
+          name: "Find Slots",
+          href: "/dashboard/student/slots",
+          icon: Calendar,
+        },
+        {
+          name: "My Bookings",
+          href: "/dashboard/student/bookings",
+          icon: Clock,
+        },
+        { name: "My Tutors", href: "/dashboard/student/tutors", icon: Users },
+        { name: "Reviews", href: "/dashboard/student/reviews", icon: Star },
+        {
+          name: "Messages",
+          href: "/dashboard/student/messages",
+          icon: MessageSquare,
+        },
       ],
       TUTOR: [
-        { name: "My Slots", href: "/tutor/slots", icon: Calendar },
-        { name: "Bookings", href: "/tutor/bookings", icon: Clock },
-        { name: "Earnings", href: "/tutor/earnings", icon: DollarSign },
-        { name: "Reviews", href: "/tutor/reviews", icon: Star },
-        { name: "Students", href: "/tutor/students", icon: Users },
-        { name: "Messages", href: "/tutor/messages", icon: MessageSquare },
+        {
+          name: "Availability",
+          href: "/dashboard/tutor/availability",
+          icon: Calendar,
+        },
+        { name: "Bookings", href: "/dashboard/tutor/bookings", icon: Clock },
+        { name: "Reviews", href: "/dashboard/tutor/reviews", icon: Star },
+        { name: "Students", href: "/dashboard/tutor/students", icon: Users },
+        { name: "Profile", href: "/dashboard/tutor/profile", icon: User },
       ],
       ADMIN: [
-        { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+        {
+          name: "Analytics",
+          href: "/dashboard/admin/analytics",
+          icon: BarChart3,
+        },
         { name: "Students", href: "/dashboard/admin/students", icon: Users }, // Fixed: was /admin/tutor
-        { name: "All Slots", href: "/admin/slots", icon: Calendar },
-        { name: "Transactions", href: "/admin/transactions", icon: CreditCard },
-        { name: "Reports", href: "/admin/reports", icon: Shield },
-        { name: "Settings", href: "/admin/settings", icon: Settings },
+        { name: "All Slots", href: "/dashboard/admin/slots", icon: Calendar },
+        {
+          name: "Transactions",
+          href: "/dashboard/admin/transactions",
+          icon: CreditCard,
+        },
+        { name: "Reports", href: "/dashboard/admin/reports", icon: Shield },
+        { name: "Settings", href: "/dashboard/admin/settings", icon: Settings },
+        { name: "Profile", href: "/dashboard/admin/profile", icon: User },
       ],
     };
     return [...baseNav, ...(roleNav[userRole as keyof typeof roleNav] || [])];
   };
 
   const navigation = getNavigation();
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -154,8 +190,9 @@ export function DashboardClientWrapper({
           <div className="p-6 border-b border-border/40">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 ring-2 ring-primary/20">
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>{userData?.name.slice(0, 2)}</AvatarFallback>
+                <AvatarFallback>
+                  {userData?.name.slice(0, 2) || "NA"}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">
@@ -208,7 +245,10 @@ export function DashboardClientWrapper({
 
           {/* Sidebar Footer */}
           <div className="p-4 border-t border-border/40 space-y-2">
-            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all">
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all hover:cursor-pointer"
+            >
               <LogOut className="h-5 w-5" />
               <span>Logout</span>
             </button>
@@ -232,14 +272,6 @@ export function DashboardClientWrapper({
             <div className="lg:hidden">
               <BrandLogo />
             </div>
-
-            {/* Show current role for testing */}
-            <Badge
-              variant="outline"
-              className="hidden md:inline-flex bg-primary/10 text-primary"
-            >
-              Testing: {userRole}
-            </Badge>
           </div>
 
           <div className="flex items-center gap-3">
@@ -252,31 +284,38 @@ export function DashboardClientWrapper({
                   className="flex items-center gap-2 px-2"
                 >
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>JD</AvatarFallback>
+                    <AvatarFallback>
+                      {userData?.name.slice(0, 2) || "NA"}
+                    </AvatarFallback>
                   </Avatar>
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>{userData?.name}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                  <UserCircle className="mr-2 h-4 w-4" />
-                  Profile
+                  <Link
+                    className="flex w-full"
+                    href={`/dashboard/${userRole.toLowerCase()}/profile`}
+                  >
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Billing
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log out
+                  <div
+                    className="flex hover:cursor-pointer"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

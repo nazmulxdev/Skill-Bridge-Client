@@ -16,7 +16,6 @@ export default async function DashboardLayout({
 }: DashboardLayoutProps) {
   const { data, error } = await authService.getSession();
   const { role, name, email } = data?.user;
-  console.log(role);
   return (
     <DashboardClientWrapper
       admin={admin}

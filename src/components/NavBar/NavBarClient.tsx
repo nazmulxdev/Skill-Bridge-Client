@@ -55,7 +55,6 @@ export default function NavbarClient({
 
         <div className="px-6 py-8 space-y-6">
           {navLinks.map((link) => {
-            const isDashboard = link.name === "Dashboard";
             return (
               <Link
                 key={link.name}
@@ -64,17 +63,26 @@ export default function NavbarClient({
                 className="flex items-center justify-between text-base font-medium text-muted-foreground hover:text-foreground"
               >
                 <span>{link.name}</span>
-                {isDashboard && role && (
-                  <Badge
-                    variant="outline"
-                    className="bg-primary/10 text-primary"
-                  >
-                    {String(role).toLowerCase()}
-                  </Badge>
-                )}
               </Link>
             );
           })}
+          {user && (
+            <Link
+              href="/dashboard"
+              className="relative text-sm font-medium text-muted-foreground hover:text-foreground group flex items-center gap-2"
+            >
+              Dashboard
+              {role && (
+                <Badge
+                  variant="outline"
+                  className="text-[10px] h-4 px-1 bg-primary/10 text-primary"
+                >
+                  {role.toLowerCase()}
+                </Badge>
+              )}
+              <span className="absolute left-0 -bottom-1 h-[2px] bg-primary transition-all duration-300 w-0 group-hover:w-full" />
+            </Link>
+          )}
 
           <div className="pt-6 border-t border-border space-y-4">
             <div className="flex items-center justify-between">

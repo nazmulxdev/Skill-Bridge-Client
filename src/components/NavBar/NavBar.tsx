@@ -6,7 +6,6 @@ import { Badge } from "../ui/badge";
 import { ModeToggle } from "../Theme/ModeToggle";
 import { Button } from "../ui/button";
 import NavbarClient from "./NavBarClient";
-import { authService } from "@/services/authService.server";
 import { SignOutButton } from "../AuthLayout/SignoutButton";
 // Import client component for interactive parts
 
@@ -22,7 +21,7 @@ export default async function Navbar() {
   const role = user?.role;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/70 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/70 ">
       <div className="mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between">
         <BrandLogo />
 
