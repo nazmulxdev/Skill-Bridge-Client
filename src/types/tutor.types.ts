@@ -1,8 +1,7 @@
 export interface StepProps {
-  userData?: any;
   tutorProfile?: any | null;
-  onComplete?: () => void;
   isLocked?: boolean;
+  onComplete?: () => void;
 }
 
 export interface Education {

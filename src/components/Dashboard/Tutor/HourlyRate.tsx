@@ -52,12 +52,6 @@ export function TutorHourlyRate({ tutorProfile, onComplete }: StepProps) {
 
       try {
         if (hasProfile) {
-          // const res = await fetch("/api/tutor/update/hourly_rate", {
-          //   method: "PATCH",
-          //   headers: { "Content-Type": "application/json" },
-          //   body: JSON.stringify(value),
-          // });
-
           const res = await updateTutorHourlyRate(value.hourlyRate);
 
           if (!res.data || res.error) {
@@ -66,12 +60,6 @@ export function TutorHourlyRate({ tutorProfile, onComplete }: StepProps) {
             );
           }
         } else {
-          // const res = await fetch("/api/tutor", {
-          //   method: "POST",
-          //   headers: { "Content-Type": "application/json" },
-          //   body: JSON.stringify(value),
-          // });
-
           const res = await createTutorWithServer(value.hourlyRate);
           if (!res.data || res.error) {
             throw new Error(

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "@tanstack/react-form";
+import { useForm, useStore } from "@tanstack/react-form";
 import * as z from "zod";
 import {
   GraduationCap,
@@ -24,6 +24,11 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Education, StepProps } from "@/types";
+import {
+  addTutorEducation,
+  deleteTutorEducation,
+  updateTutorEducation,
+} from "@/actions/tutor.action";
 
 // Schema
 const formSchema = z
@@ -57,9 +62,7 @@ export function TutorEducation({ tutorProfile, isLocked }: StepProps) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
 
-  const [educationList, setEducationList] = useState<Education[]>(
-    tutorProfile.education,
-  );
+  const educationList = tutorProfile?.education || [];
 
   const form = useForm({
     defaultValues: {
@@ -78,19 +81,25 @@ export function TutorEducation({ tutorProfile, isLocked }: StepProps) {
       setError(null);
 
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Clean up the data
+        const cleanedValue = {
+          ...value,
+          endYear: value.isCurrent ? null : value.endYear,
+        };
 
         if (editingId) {
-          setEducationList((prev) =>
-            prev.map((edu) =>
-              edu.id === editingId
-                ? ({ ...value, id: editingId } as Education)
-                : edu,
-            ),
-          );
+          const res = await updateTutorEducation({
+            id: editingId,
+            ...cleanedValue,
+          });
+          if (!res.data || res.error) {
+            throw new Error(res.error?.message || "Failed to update");
+          }
         } else {
-          const newEdu = { ...value, id: Date.now().toString() } as Education;
-          setEducationList((prev) => [...prev, newEdu]);
+          const res = await addTutorEducation(cleanedValue);
+          if (!res.data || res.error) {
+            throw new Error(res.error?.message || "Failed to add");
+          }
         }
 
         setIsAdding(false);
@@ -117,15 +126,21 @@ export function TutorEducation({ tutorProfile, isLocked }: StepProps) {
 
   const handleDelete = async (id: string) => {
     setIsPending(true);
+    setError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setEducationList((prev) => prev.filter((edu) => edu.id !== id));
+      const res = await deleteTutorEducation(id);
+      if (!res.data || res.error) {
+        throw new Error(res.error?.message || "Failed to delete");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete");
     } finally {
       setIsPending(false);
     }
   };
+
+  // Watch isCurrent value
+  const isCurrent = useStore(form.store, (state) => state.values.isCurrent);
 
   if (isLocked) {
     return (
@@ -162,40 +177,46 @@ export function TutorEducation({ tutorProfile, isLocked }: StepProps) {
 
         {/* Education List */}
         <div className="space-y-3">
-          {educationList.map((edu) => (
-            <div
-              key={edu.id}
-              className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
-            >
-              <div>
-                <p className="font-medium">
-                  {edu.degree} in {edu.fieldOfStudy}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {edu.institute} • {edu.startYear} -{" "}
-                  {edu.isCurrent ? "Present" : edu.endYear}
-                </p>
+          {educationList.length > 0 ? (
+            educationList.map((edu: Education) => (
+              <div
+                key={edu.id}
+                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+              >
+                <div>
+                  <p className="font-medium">
+                    {edu.degree} in {edu.fieldOfStudy}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {edu.institute} • {edu.startYear} -{" "}
+                    {edu.isCurrent ? "Present" : edu.endYear}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEdit(edu)}
+                    disabled={isPending}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(edu.id)}
+                    disabled={isPending}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleEdit(edu)}
-                  disabled={isPending}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDelete(edu.id)}
-                  disabled={isPending}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No education added yet. Click "Add Education" to get started.
+            </p>
+          )}
         </div>
 
         {/* Add/Edit Form */}
@@ -280,9 +301,12 @@ export function TutorEducation({ tutorProfile, isLocked }: StepProps) {
                       <Input
                         type="number"
                         value={field.state.value}
-                        onChange={(e) =>
-                          field.handleChange(Number(e.target.value))
-                        }
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          field.handleChange(
+                            val === "" ? new Date().getFullYear() : Number(val),
+                          );
+                        }}
                       />
                       {field.state.meta.errors && (
                         <p className="text-xs text-destructive">
@@ -292,6 +316,7 @@ export function TutorEducation({ tutorProfile, isLocked }: StepProps) {
                     </div>
                   )}
                 />
+
                 <form.Field
                   name="endYear"
                   children={(field) => (
@@ -299,13 +324,15 @@ export function TutorEducation({ tutorProfile, isLocked }: StepProps) {
                       <Label>End Year</Label>
                       <Input
                         type="number"
-                        value={field.state.value || ""}
-                        onChange={(e) =>
-                          field.handleChange(
-                            e.target.value ? Number(e.target.value) : null,
-                          )
+                        value={isCurrent ? "" : field.state.value || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          field.handleChange(val === "" ? null : Number(val));
+                        }}
+                        disabled={isCurrent}
+                        className={
+                          isCurrent ? "opacity-50 cursor-not-allowed" : ""
                         }
-                        disabled={form.getFieldValue("isCurrent")}
                       />
                       {field.state.meta.errors && (
                         <p className="text-xs text-destructive">
@@ -323,7 +350,9 @@ export function TutorEducation({ tutorProfile, isLocked }: StepProps) {
                         checked={field.state.value}
                         onCheckedChange={(checked) => {
                           field.handleChange(checked);
-                          if (checked) form.setFieldValue("endYear", null);
+                          if (checked) {
+                            form.setFieldValue("endYear", null);
+                          }
                         }}
                       />
                       <Label>Currently studying</Label>

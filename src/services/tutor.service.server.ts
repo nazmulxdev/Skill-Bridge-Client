@@ -13,13 +13,7 @@ export const tutorService = {
         },
         cache: "no-store",
         next: {
-          tags: [
-            "create-tutor",
-            "update-tutor",
-            "add-education",
-            "update-education",
-            "delete-education",
-          ],
+          tags: ["tutor-profile"],
         },
       });
       const data = await res.json();
@@ -138,5 +132,97 @@ export const tutorService = {
 
   // create education
 
-  createEducation: async function (payload: Partial<Education>) {},
+  createEducation: async function (payload: Partial<Education>) {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${env.API_URL}/tutors/education`, {
+        method: "POST",
+        headers: {
+          Cookie: cookieStore.toString(),
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
+
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
+
+  // update education
+  updateEducation: async function (payload: Partial<Education>) {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${env.API_URL}/tutors/education/${payload.id}`, {
+        method: "PATCH",
+        headers: {
+          Cookie: cookieStore.toString(),
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
+
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
+
+  // delete education
+
+  deleteEducation: async function (id: string) {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${env.API_URL}/tutors/education/${id}`, {
+        method: "DELETE",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
+
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
 };

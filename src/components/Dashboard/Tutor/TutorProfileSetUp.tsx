@@ -1,14 +1,12 @@
 "use client";
 
-import { useState } from "react";
-
-import { CheckCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { TutorHourlyRate } from "./HourlyRate";
 import { TutorEducation } from "./TutorEducation";
 import { TutorSubject } from "./TutorSubject";
 import { TutorAvailability } from "./TutorAvailability";
 import { TutorTimeSlot } from "./TutorTimeSlot";
+import { CheckCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { TutorHourlyRate } from "./HourlyRate";
 
 interface TutorSetupProps {
   userData: any;
@@ -16,16 +14,28 @@ interface TutorSetupProps {
 }
 
 export function TutorSetup({ userData, tutorProfile }: TutorSetupProps) {
-  const [completedSteps, setCompletedSteps] = useState<number[]>(
-    tutorProfile ? [1] : [],
-  );
-
   const hasProfile = tutorProfile !== null;
 
-  const handleStepComplete = (step: number) => {
-    if (!completedSteps.includes(step)) {
-      setCompletedSteps([...completedSteps, step]);
-    }
+  // Database-driven locking logic
+  const isStep1Complete = hasProfile && tutorProfile?.hourlyRate != null;
+  const isStep2Complete =
+    isStep1Complete && (tutorProfile?.education?.length || 0) > 0;
+  const isStep3Complete =
+    isStep2Complete && (tutorProfile?.subjects?.length || 0) > 0;
+  const isStep4Complete =
+    isStep3Complete && (tutorProfile?.availabilities?.length || 0) > 0;
+  const isStep5Complete =
+    isStep4Complete && (tutorProfile?.tutorTimeSlots?.length || 0) > 0;
+
+  // Lock steps based on database state
+  const isStep2Locked = !isStep1Complete;
+  const isStep3Locked = !isStep2Complete;
+  const isStep4Locked = !isStep3Complete;
+  const isStep5Locked = !isStep4Complete;
+
+  const handleStepComplete = () => {
+    // This will trigger a revalidation through server actions
+    // The page will refresh with new data from database
   };
 
   return (
@@ -40,10 +50,19 @@ export function TutorSetup({ userData, tutorProfile }: TutorSetupProps) {
 
       {/* Progress Steps */}
       <div className="flex justify-between items-center mb-8">
-        {[1, 2, 3, 4, 5].map((step) => {
-          const isCompleted = completedSteps.includes(step);
+        {[
+          { step: 1, label: "Hourly Rate", complete: isStep1Complete },
+          { step: 2, label: "Education", complete: isStep2Complete },
+          { step: 3, label: "Subjects", complete: isStep3Complete },
+          { step: 4, label: "Availability", complete: isStep4Complete },
+          { step: 5, label: "Time Slots", complete: isStep5Complete },
+        ].map(({ step, label, complete }) => {
           const isCurrent =
-            step === 1 || (step > 1 && completedSteps.includes(step - 1));
+            step === 1 ||
+            (step === 2 && isStep1Complete) ||
+            (step === 3 && isStep2Complete) ||
+            (step === 4 && isStep3Complete) ||
+            (step === 5 && isStep4Complete);
 
           return (
             <div key={step} className="flex-1 relative">
@@ -52,7 +71,7 @@ export function TutorSetup({ userData, tutorProfile }: TutorSetupProps) {
                 <div
                   className={cn(
                     "absolute top-4 left-1/2 w-full h-0.5",
-                    completedSteps.includes(step) ? "bg-primary" : "bg-border",
+                    complete ? "bg-primary" : "bg-border",
                   )}
                 />
               )}
@@ -62,13 +81,13 @@ export function TutorSetup({ userData, tutorProfile }: TutorSetupProps) {
                 <div
                   className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center border-2 bg-background z-10",
-                    isCompleted
+                    complete
                       ? "border-primary bg-primary text-primary-foreground"
                       : "border-border",
-                    isCurrent && !isCompleted && "border-primary",
+                    isCurrent && !complete && "border-primary",
                   )}
                 >
-                  {isCompleted ? (
+                  {complete ? (
                     <CheckCircle className="h-4 w-4 text-primary" />
                   ) : (
                     <span
@@ -81,7 +100,7 @@ export function TutorSetup({ userData, tutorProfile }: TutorSetupProps) {
                     </span>
                   )}
                 </div>
-                <span className="text-xs mt-2">Step {step}</span>
+                <span className="text-xs mt-2">{label}</span>
               </div>
             </div>
           );
@@ -91,18 +110,20 @@ export function TutorSetup({ userData, tutorProfile }: TutorSetupProps) {
       {/* Steps */}
       <div className="space-y-6">
         <TutorHourlyRate
-          userData={userData}
           tutorProfile={tutorProfile}
-          onComplete={() => handleStepComplete(1)}
+          onComplete={handleStepComplete}
         />
 
-        <TutorEducation tutorProfile={tutorProfile} isLocked={!hasProfile} />
+        <TutorEducation tutorProfile={tutorProfile} isLocked={isStep2Locked} />
 
-        <TutorSubject tutorProfile={tutorProfile} isLocked={!hasProfile} />
+        <TutorSubject tutorProfile={tutorProfile} isLocked={isStep3Locked} />
 
-        <TutorAvailability tutorProfile={tutorProfile} isLocked={!hasProfile} />
+        <TutorAvailability
+          tutorProfile={tutorProfile}
+          isLocked={isStep4Locked}
+        />
 
-        <TutorTimeSlot tutorProfile={tutorProfile} isLocked={!hasProfile} />
+        <TutorTimeSlot tutorProfile={tutorProfile} isLocked={isStep5Locked} />
       </div>
     </div>
   );
