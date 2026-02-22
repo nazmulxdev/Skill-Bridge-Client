@@ -1,5 +1,14 @@
 import { Footer } from "@/components/Footer/Footer";
 import Navbar from "@/components/NavBar/NavBar";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: {
+    template: "%s | Skill Bridge",
+    default: "Skill Bridge",
+  },
+  description: "Connect with expert tutors and enhance your skills",
+};
 
 export default function CommonLayout({
   children,

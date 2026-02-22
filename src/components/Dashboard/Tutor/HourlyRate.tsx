@@ -17,6 +17,10 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { StepProps } from "@/types";
+import {
+  createTutorWithServer,
+  updateTutorHourlyRate,
+} from "@/actions/tutor.action";
 
 // Schema
 const formSchema = z.object({
@@ -26,11 +30,7 @@ const formSchema = z.object({
     .positive("Must be positive"),
 });
 
-export function TutorHourlyRate({
-  userData,
-  tutorProfile,
-  onComplete,
-}: StepProps) {
+export function TutorHourlyRate({ tutorProfile, onComplete }: StepProps) {
   const [isEditing, setIsEditing] = useState(!tutorProfile);
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
@@ -48,23 +48,36 @@ export function TutorHourlyRate({
       setIsPending(true);
       setError(null);
 
+      console.log(value);
+
       try {
         if (hasProfile) {
-          const res = await fetch("/api/tutor/update/hourly_rate", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(value),
-          });
-          const data = await res.json();
-          if (!data.success) throw new Error(data.message);
+          // const res = await fetch("/api/tutor/update/hourly_rate", {
+          //   method: "PATCH",
+          //   headers: { "Content-Type": "application/json" },
+          //   body: JSON.stringify(value),
+          // });
+
+          const res = await updateTutorHourlyRate(value.hourlyRate);
+
+          if (!res.data || res.error) {
+            throw new Error(
+              res.error?.message || "Failed to update hourly rate",
+            );
+          }
         } else {
-          const res = await fetch("/api/tutor", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(value),
-          });
-          const data = await res.json();
-          if (!data.success) throw new Error(data.message);
+          // const res = await fetch("/api/tutor", {
+          //   method: "POST",
+          //   headers: { "Content-Type": "application/json" },
+          //   body: JSON.stringify(value),
+          // });
+
+          const res = await createTutorWithServer(value.hourlyRate);
+          if (!res.data || res.error) {
+            throw new Error(
+              res.error?.message || "Failed to create tutor profile",
+            );
+          }
         }
 
         setIsEditing(false);

@@ -1,6 +1,12 @@
 import { TutorBasicProfile } from "@/components/Dashboard/Tutor/TutorBasicProfile";
+import { TutorCompleteProfile } from "@/components/Dashboard/Tutor/TutorCompleteProfile";
 import { TutorSetup } from "@/components/Dashboard/Tutor/TutorProfileSetUp"; // Make sure this import path is correct
 import { tutorService } from "@/services/tutor.service.server";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Profile",
+};
 
 export default async function TutorProfile() {
   const { data, error } = await tutorService.getTutorProfile();
@@ -63,23 +69,7 @@ export default async function TutorProfile() {
 
       {/* Show regular dashboard if profile is complete */}
       {hasProfile && isProfileComplete && (
-        <div className="mt-6">
-          <h2 className="text-2xl font-bold mb-4">Your Tutor Dashboard</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-card p-6 rounded-lg border border-border/50">
-              <h3 className="font-semibold mb-2">Today's Schedule</h3>
-              <p className="text-muted-foreground">You have 3 sessions today</p>
-            </div>
-            <div className="bg-card p-6 rounded-lg border border-border/50">
-              <h3 className="font-semibold mb-2">Total Earnings</h3>
-              <p className="text-2xl font-bold text-primary">$1,245</p>
-            </div>
-            <div className="bg-card p-6 rounded-lg border border-border/50">
-              <h3 className="font-semibold mb-2">Student Reviews</h3>
-              <p className="text-2xl font-bold text-primary">4.9 ★</p>
-            </div>
-          </div>
-        </div>
+        <TutorCompleteProfile userData={data} />
       )}
     </div>
   );

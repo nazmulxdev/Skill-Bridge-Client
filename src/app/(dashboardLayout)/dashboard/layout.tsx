@@ -1,5 +1,6 @@
 import { DashboardClientWrapper } from "@/components/Dashboard/DashboardLayout";
 import { authService } from "@/services/authService.server";
+import { Metadata } from "next";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -7,6 +8,14 @@ interface DashboardLayoutProps {
   student: React.ReactNode;
   tutor: React.ReactNode;
 }
+
+export const metadata: Metadata = {
+  title: {
+    template: "%s | Skill Bridge",
+    default: "Dashboard | Skill Bridge",
+  },
+  description: "Connect with expert tutors and enhance your skills",
+};
 
 export default async function DashboardLayout({
   children,

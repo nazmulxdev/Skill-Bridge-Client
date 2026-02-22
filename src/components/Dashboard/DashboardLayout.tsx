@@ -117,15 +117,16 @@ export function DashboardClientWrapper({
         },
       ],
       TUTOR: [
+        { name: "Profile", href: "/dashboard/tutor/profile", icon: User },
         {
           name: "Availability",
           href: "/dashboard/tutor/availability",
           icon: Calendar,
         },
         { name: "Bookings", href: "/dashboard/tutor/bookings", icon: Clock },
+
         { name: "Reviews", href: "/dashboard/tutor/reviews", icon: Star },
         { name: "Students", href: "/dashboard/tutor/students", icon: Users },
-        { name: "Profile", href: "/dashboard/tutor/profile", icon: User },
       ],
       ADMIN: [
         {

@@ -57,17 +57,9 @@ export function TutorEducation({ tutorProfile, isLocked }: StepProps) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
 
-  const [educationList, setEducationList] = useState<Education[]>([
-    {
-      id: "1",
-      institute: "Stanford University",
-      degree: "Master of Science",
-      fieldOfStudy: "Computer Science",
-      startYear: 2018,
-      endYear: 2020,
-      isCurrent: false,
-    },
-  ]);
+  const [educationList, setEducationList] = useState<Education[]>(
+    tutorProfile.education,
+  );
 
   const form = useForm({
     defaultValues: {
