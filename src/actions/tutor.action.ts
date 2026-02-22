@@ -56,3 +56,30 @@ export const deleteTutorEducation = async (id: string) => {
 
   return result;
 };
+
+// get category with subject
+
+export const getAllCategoryWithSubject = async () => {
+  return await tutorService.getAllSubjectWithCategory();
+};
+
+// add tutor subject
+
+export const addTutorSubjects = async (subjectIds: string[]) => {
+  const result = await tutorService.addingTutorSubjects(subjectIds);
+  if (result.data) {
+    revalidateTag("tutor-profile", "max");
+  }
+
+  return result;
+};
+
+// removing tutor subject
+
+export const removeTutorSubject = async (subjectId: string) => {
+  const result = await tutorService.removeTutorSubject(subjectId);
+  if (result.data) {
+    revalidateTag("tutor-profile", "max");
+  }
+  return result;
+};

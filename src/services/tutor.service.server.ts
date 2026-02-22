@@ -64,6 +64,34 @@ export const tutorService = {
     }
   },
 
+  // get all category with subject
+  getAllSubjectWithCategory: async function () {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${env.API_URL}/categories`, {
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
+
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
   // create tutor profile using
 
   createTutorProfileUsingRate: async function (hourlyRate: number) {
@@ -216,6 +244,69 @@ export const tutorService = {
         };
       }
 
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
+
+  // adding subject
+
+  addingTutorSubjects: async function (subjectIds: string[]) {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${env.API_URL}/tutors/subject`, {
+        method: "POST",
+        headers: {
+          Cookie: cookieStore.toString(),
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+        body: JSON.stringify({
+          subjects: subjectIds.map((id) => ({ subjectId: id })),
+        }),
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
+
+  // deleting subject
+
+  removeTutorSubject: async function (subjectId: string) {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${env.API_URL}/tutors/subjects/${subjectId}`, {
+        method: "DELETE",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+      });
+      const data = await res.json();
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
       return { data: data.data, error: null };
     } catch (error) {
       console.error(error);
