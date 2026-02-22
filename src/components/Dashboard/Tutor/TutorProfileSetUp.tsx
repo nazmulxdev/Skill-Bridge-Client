@@ -13,25 +13,33 @@ interface TutorSetupProps {
   tutorProfile: any | null;
 }
 
-export function TutorSetup({ userData, tutorProfile }: TutorSetupProps) {
+export function TutorSetup({ tutorProfile }: TutorSetupProps) {
   const hasProfile = tutorProfile !== null;
 
-  // Database-driven locking logic
+  // checking steps
   const isStep1Complete = hasProfile && tutorProfile?.hourlyRate != null;
-  const isStep2Complete =
-    isStep1Complete && (tutorProfile?.education?.length || 0) > 0;
-  const isStep3Complete =
-    isStep2Complete && (tutorProfile?.subjects?.length || 0) > 0;
-  const isStep4Complete =
-    isStep3Complete && (tutorProfile?.availabilities?.length || 0) > 0;
-  const isStep5Complete =
-    isStep4Complete && (tutorProfile?.tutorTimeSlots?.length || 0) > 0;
+  const isStep2Complete = (tutorProfile?.education?.length || 0) > 0;
+  const isStep3Complete = (tutorProfile?.subjects?.length || 0) > 0;
+  const isStep4Complete = (tutorProfile?.availabilities?.length || 0) > 0;
+  const isStep5Complete = (tutorProfile?.tutorTimeSlots?.length || 0) > 0;
 
-  // Lock steps based on database state
+  // Lock steps based on previous steps being complete
   const isStep2Locked = !isStep1Complete;
   const isStep3Locked = !isStep2Complete;
   const isStep4Locked = !isStep3Complete;
   const isStep5Locked = !isStep4Complete;
+
+  // Determine which step is currently active
+  const getCurrentStep = () => {
+    if (!isStep1Complete) return 1;
+    if (!isStep2Complete) return 2;
+    if (!isStep3Complete) return 3;
+    if (!isStep4Complete) return 4;
+    if (!isStep5Complete) return 5;
+    return 5; // All complete
+  };
+
+  const currentStep = getCurrentStep();
 
   const handleStepComplete = () => {
     // This will trigger a revalidation through server actions
@@ -57,12 +65,7 @@ export function TutorSetup({ userData, tutorProfile }: TutorSetupProps) {
           { step: 4, label: "Availability", complete: isStep4Complete },
           { step: 5, label: "Time Slots", complete: isStep5Complete },
         ].map(({ step, label, complete }) => {
-          const isCurrent =
-            step === 1 ||
-            (step === 2 && isStep1Complete) ||
-            (step === 3 && isStep2Complete) ||
-            (step === 4 && isStep3Complete) ||
-            (step === 5 && isStep4Complete);
+          const isCurrent = currentStep === step;
 
           return (
             <div key={step} className="flex-1 relative">

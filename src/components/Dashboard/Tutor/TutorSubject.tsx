@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import * as z from "zod";
 import { BookOpen, Plus, X, Loader2, Lock } from "lucide-react";
@@ -21,32 +21,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { StepProps } from "@/types";
+import { Category, StepProps } from "@/types";
+import {
+  addTutorSubjects,
+  getAllCategoryWithSubject,
+  removeTutorSubject,
+} from "@/actions/tutor.action";
 
 // Schema
 const formSchema = z.object({
   subjectId: z.string().min(1, "Please select a subject"),
 });
 
-// Dummy available subjects
-const AVAILABLE_SUBJECTS = [
-  { id: "1", name: "Mathematics" },
-  { id: "2", name: "Physics" },
-  { id: "3", name: "Chemistry" },
-  { id: "4", name: "Biology" },
-  { id: "5", name: "English" },
-  { id: "6", name: "History" },
-  { id: "7", name: "Computer Science" },
-  { id: "8", name: "Economics" },
-];
-
 export function TutorSubject({ tutorProfile, isLocked }: StepProps) {
-  const [subjects, setSubjects] = useState<string[]>([
-    "Mathematics",
-    "Physics",
-  ]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
+
+  // Get existing subjects from tutorProfile
+  const existingSubjects =
+    tutorProfile?.subjects?.map((s: any) => ({
+      id: s.subject.id,
+      name: s.subject.name,
+      categoryName: s.subject.category?.name,
+    })) || [];
+
+  const existingSubjectIds = existingSubjects.map((s: { id: string }) => s.id);
 
   const form = useForm({
     defaultValues: {
@@ -60,12 +61,9 @@ export function TutorSubject({ tutorProfile, isLocked }: StepProps) {
       setError(null);
 
       try {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        const selectedSubject = AVAILABLE_SUBJECTS.find(
-          (s) => s.id === value.subjectId,
-        );
-        if (selectedSubject && !subjects.includes(selectedSubject.name)) {
-          setSubjects([...subjects, selectedSubject.name]);
+        const res = await addTutorSubjects([value.subjectId]);
+        if (!res.data || res.error) {
+          throw new Error(res.error?.message || "Failed to add subject");
         }
         form.reset();
       } catch (err) {
@@ -76,11 +74,15 @@ export function TutorSubject({ tutorProfile, isLocked }: StepProps) {
     },
   });
 
-  const handleRemoveSubject = async (subject: string) => {
+  const handleRemoveSubject = async (subjectId: string) => {
     setIsPending(true);
+    setError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setSubjects(subjects.filter((s) => s !== subject));
+      const res = await removeTutorSubject(subjectId);
+
+      if (!res.data || res.error) {
+        throw new Error(res.error?.message || "Failed to remove subject");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to remove subject");
     } finally {
@@ -88,10 +90,25 @@ export function TutorSubject({ tutorProfile, isLocked }: StepProps) {
     }
   };
 
-  const availableToAdd = AVAILABLE_SUBJECTS.filter(
-    (s) => !subjects.includes(s.name),
-  );
+  // Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const result = await getAllCategoryWithSubject();
+        if (result.data) {
+          setCategories(result.data);
+        } else {
+          setError("Failed to load subjects");
+        }
+      } catch (err) {
+        setError("Failed to load subjects");
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchCategories();
+  }, []);
   if (isLocked) {
     return (
       <Card className="border-border/50 bg-card/50 opacity-50">
@@ -125,91 +142,128 @@ export function TutorSubject({ tutorProfile, isLocked }: StepProps) {
           </Alert>
         )}
 
-        {/* Selected Subjects */}
-        <div className="flex flex-wrap gap-2">
-          {subjects.map((subject) => (
-            <Badge
-              key={subject}
-              variant="secondary"
-              className="px-3 py-1 gap-2"
-            >
-              {subject}
-              <button
-                onClick={() => handleRemoveSubject(subject)}
-                disabled={isPending}
-                className="hover:text-destructive"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-          {subjects.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              No subjects added yet
+        {/* Selected Subjects by Category */}
+        <div className="space-y-4">
+          {existingSubjects.length > 0 ? (
+            // Group subjects by category
+            Object.entries(
+              existingSubjects.reduce((acc: any, subject: any) => {
+                const category = subject.categoryName || "Other";
+                if (!acc[category]) acc[category] = [];
+                acc[category].push(subject);
+                return acc;
+              }, {}),
+            ).map(([category, subjects]: [string, any]) => (
+              <div key={category} className="space-y-2">
+                <h4 className="text-sm font-medium text-muted-foreground">
+                  {category}
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {subjects.map((subject: { id: string; name: string }) => (
+                    <Badge
+                      key={subject.id}
+                      variant="secondary"
+                      className="px-3 py-1 gap-2"
+                    >
+                      {subject.name}
+                      <button
+                        onClick={() => handleRemoveSubject(subject.id)}
+                        disabled={isPending}
+                        className="hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No subjects added yet. Select subjects below to get started.
             </p>
           )}
         </div>
 
         {/* Add Subject Form */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
-          }}
-          className="flex gap-2"
-        >
-          <form.Field
-            name="subjectId"
-            children={(field) => (
-              <div className="flex-1">
-                <Select
-                  value={field.state.value}
-                  onValueChange={field.handleChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a subject to add" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableToAdd.map((subject) => (
-                      <SelectItem key={subject.id} value={subject.id}>
-                        {subject.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {field.state.meta.errors && (
-                  <p className="text-xs text-destructive mt-1">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
+        {loading ? (
+          <div className="flex justify-center py-4">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit();
+            }}
+            className="space-y-4"
+          >
+            <div className="flex gap-2">
+              <form.Field
+                name="subjectId"
+                children={(field) => (
+                  <div className="flex-1">
+                    <Select
+                      value={field.state.value}
+                      onValueChange={field.handleChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a subject to add" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <div key={category.id}>
+                            {/* Category header as disabled item */}
+                            <SelectItem
+                              value={`category-${category.id}`}
+                              disabled
+                              className="font-semibold text-primary bg-muted/50"
+                            >
+                              {category.name}
+                            </SelectItem>
+                            {/* Subjects under category */}
+                            {category.subjects
+                              .filter(
+                                (subject) =>
+                                  !existingSubjectIds.includes(subject.id),
+                              )
+                              .map((subject) => (
+                                <SelectItem
+                                  key={subject.id}
+                                  value={subject.id}
+                                  className="pl-6"
+                                >
+                                  {subject.name}
+                                </SelectItem>
+                              ))}
+                          </div>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {field.state.meta.errors && (
+                      <p className="text-xs text-destructive mt-1">
+                        {field.state.meta.errors.join(", ")}
+                      </p>
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
-          />
+              />
 
-          <form.Subscribe
-            selector={(state) => [state.canSubmit]}
-            children={([canSubmit]) => (
-              <Button
-                type="submit"
-                disabled={
-                  !canSubmit || isPending || availableToAdd.length === 0
-                }
-              >
-                {isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Plus className="h-4 w-4" />
+              <form.Subscribe
+                selector={(state) => [state.canSubmit]}
+                children={([canSubmit]) => (
+                  <Button type="submit" disabled={!canSubmit || isPending}>
+                    {isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
+                  </Button>
                 )}
-              </Button>
-            )}
-          />
-        </form>
-
-        {availableToAdd.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center">
-            You've added all available subjects!
-          </p>
+              />
+            </div>
+          </form>
         )}
       </CardContent>
     </Card>

@@ -259,7 +259,7 @@ export const tutorService = {
   addingTutorSubjects: async function (subjectIds: string[]) {
     try {
       const cookieStore = await cookies();
-      const res = await fetch(`${env.API_URL}/tutors/subject`, {
+      const res = await fetch(`${env.API_URL}/tutors/subjects`, {
         method: "POST",
         headers: {
           Cookie: cookieStore.toString(),

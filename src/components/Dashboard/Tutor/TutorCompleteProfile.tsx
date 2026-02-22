@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TutorBookings } from "./TutorBookings";
+import { CategoryGroup, SubjectItem } from "@/types";
 
 interface TutorProfileDetailsProps {
   userData: any;
@@ -54,6 +55,19 @@ export function TutorCompleteProfile({ userData }: TutorProfileDetailsProps) {
           ) / tutorProfiles.reviews.length
         ).toFixed(1)
       : "0.0";
+
+  // Group subjects by category
+  const groupedSubjects = tutorProfiles.subjects?.reduce(
+    (acc: CategoryGroup, item: any) => {
+      const categoryName = item.subject?.category?.name || "Uncategorized";
+      if (!acc[categoryName]) {
+        acc[categoryName] = [];
+      }
+      acc[categoryName].push(item);
+      return acc;
+    },
+    {} as CategoryGroup,
+  );
 
   return (
     <div className="space-y-6">
@@ -183,7 +197,6 @@ export function TutorCompleteProfile({ userData }: TutorProfileDetailsProps) {
         </TabsList>
 
         {/* Subjects Tab */}
-
         <TabsContent value="subjects">
           <Card className="border-border/50 bg-card/50">
             <CardHeader>
@@ -195,57 +208,59 @@ export function TutorCompleteProfile({ userData }: TutorProfileDetailsProps) {
             <CardContent>
               {tutorProfiles.subjects?.length > 0 ? (
                 <div className="space-y-6">
-                  {/* Group subjects by category */}
-                  {Object.entries(
-                    tutorProfiles.subjects.reduce((acc: any, item: any) => {
-                      const categoryName =
-                        item.subject?.category?.name || "Uncategorized";
-                      if (!acc[categoryName]) {
-                        acc[categoryName] = [];
-                      }
-                      acc[categoryName].push(item);
-                      return acc;
-                    }, {}),
-                  ).map(([category, items]: [string, any[]]) => (
-                    <div key={category} className="space-y-3">
-                      {/* Category Header */}
-                      <div className="flex items-center gap-2">
-                        <div className="h-6 w-1 bg-primary rounded-full" />
-                        <h3 className="font-semibold text-lg">{category}</h3>
-                        <Badge
-                          variant="outline"
-                          className="ml-2 bg-primary/10 text-primary"
-                        >
-                          {items.length}{" "}
-                          {items.length === 1 ? "subject" : "subjects"}
-                        </Badge>
-                      </div>
+                  {/* Group subjects by category  */}
+                  {groupedSubjects &&
+                    Object.entries(groupedSubjects).map(
+                      ([category, subjects]) => {
+                        const typedSubjects = subjects as SubjectItem[];
+                        return (
+                          <div key={category} className="space-y-3">
+                            {/* Category Header */}
+                            <div className="flex items-center gap-2">
+                              <div className="h-6 w-1 bg-primary rounded-full" />
+                              <h3 className="font-semibold text-lg">
+                                {category}
+                              </h3>
+                              <Badge
+                                variant="outline"
+                                className="ml-2 bg-primary/10 text-primary"
+                              >
+                                {typedSubjects.length}{" "}
+                                {typedSubjects.length === 1
+                                  ? "subject"
+                                  : "subjects"}
+                              </Badge>
+                            </div>
 
-                      {/* Subjects under this category */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-4">
-                        {items.map((item: any) => (
-                          <div
-                            key={item.id}
-                            className="p-3 bg-muted/30 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="font-medium">
-                                {item.subject?.name}
-                              </span>
-                              {item.subject?.category?.description && (
-                                <span
-                                  className="text-xs text-muted-foreground truncate ml-2"
-                                  title={item.subject.category.description}
+                            {/* Subjects under this category */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-4">
+                              {typedSubjects.map((item: SubjectItem) => (
+                                <div
+                                  key={item.id}
+                                  className="p-3 bg-muted/30 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
                                 >
-                                  ℹ️
-                                </span>
-                              )}
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium">
+                                      {item.subject?.name}
+                                    </span>
+                                    {item.subject?.category?.description && (
+                                      <span
+                                        className="text-xs text-muted-foreground truncate ml-2"
+                                        title={
+                                          item.subject.category.description
+                                        }
+                                      >
+                                        ℹ️
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                        );
+                      },
+                    )}
                 </div>
               ) : (
                 <p className="text-muted-foreground">No subjects added yet</p>
@@ -323,7 +338,6 @@ export function TutorCompleteProfile({ userData }: TutorProfileDetailsProps) {
         </TabsContent>
 
         {/* bookings tab */}
-        {/* Bookings Tab */}
         <TabsContent value="bookings">
           <TutorBookings bookings={tutorProfiles.bookings || []} />
         </TabsContent>

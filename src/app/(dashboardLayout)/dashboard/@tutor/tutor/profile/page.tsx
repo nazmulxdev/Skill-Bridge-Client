@@ -1,6 +1,6 @@
 import { TutorBasicProfile } from "@/components/Dashboard/Tutor/TutorBasicProfile";
 import { TutorCompleteProfile } from "@/components/Dashboard/Tutor/TutorCompleteProfile";
-import { TutorSetup } from "@/components/Dashboard/Tutor/TutorProfileSetUp"; // Make sure this import path is correct
+import { TutorSetup } from "@/components/Dashboard/Tutor/TutorProfileSetUp";
 import { tutorService } from "@/services/tutor.service.server";
 import { Metadata } from "next";
 
@@ -42,20 +42,14 @@ export default async function TutorProfile() {
   // Check if profile exists
   const hasProfile = tutorProfiles !== null;
 
-  // Check if profile is complete (has all required fields)
-  // You can define what "complete" means - for example:
+  // Check if profile is complete (ALL 5 STEPS required)
   const isProfileComplete =
     hasProfile &&
-    tutorProfiles?.hourlyRate &&
-    tutorProfiles?.education?.length > 0 &&
-    tutorProfiles?.subjects?.length > 0;
-
-  console.log({
-    role,
-    hasProfile,
-    isProfileComplete,
-    tutorProfiles,
-  });
+    tutorProfiles?.hourlyRate != null && // Step 1: Hourly Rate
+    (tutorProfiles?.education?.length || 0) > 0 && // Step 2: Education
+    (tutorProfiles?.subjects?.length || 0) > 0 && // Step 3: Subjects
+    (tutorProfiles?.availabilities?.length || 0) > 0 && // Step 4: Availability
+    (tutorProfiles?.tutorTimeSlots?.length || 0) > 0; // Step 5: Time Slots
 
   return (
     <div className="container mx-auto py-8 space-y-6">

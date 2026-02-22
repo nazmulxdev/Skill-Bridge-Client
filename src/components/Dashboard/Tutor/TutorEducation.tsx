@@ -349,8 +349,9 @@ export function TutorEducation({ tutorProfile, isLocked }: StepProps) {
                       <Checkbox
                         checked={field.state.value}
                         onCheckedChange={(checked) => {
-                          field.handleChange(checked);
-                          if (checked) {
+                          const isChecked = checked === true;
+                          field.handleChange(isChecked);
+                          if (isChecked) {
                             form.setFieldValue("endYear", null);
                           }
                         }}

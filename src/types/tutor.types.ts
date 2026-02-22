@@ -28,3 +28,30 @@ export interface TimeSlot {
   endTime: string;
   isBooked: boolean;
 }
+
+export interface Category {
+  id: string;
+  name: string;
+  description: string;
+  subjects: {
+    id: string;
+    name: string;
+  }[];
+}
+
+export interface SubjectItem {
+  id: string;
+  subject: {
+    id: string;
+    name: string;
+    category?: {
+      id: string;
+      name: string;
+      description?: string;
+    } | null;
+  };
+}
+
+export interface CategoryGroup {
+  [key: string]: SubjectItem[];
+}
