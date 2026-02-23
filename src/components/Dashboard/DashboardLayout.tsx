@@ -21,6 +21,8 @@ import {
   UserCircle,
   DollarSign,
   User,
+  Book,
+  GraduationCapIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -118,6 +120,16 @@ export function DashboardClientWrapper({
       ],
       TUTOR: [
         { name: "Profile", href: "/dashboard/tutor/profile", icon: User },
+        {
+          name: "Education",
+          href: "/dashboard/tutor/education",
+          icon: GraduationCapIcon,
+        },
+        {
+          name: "Subjects",
+          href: "/dashboard/tutor/subjects",
+          icon: Book,
+        },
         {
           name: "Availability",
           href: "/dashboard/tutor/availability",
