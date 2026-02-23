@@ -123,10 +123,14 @@ export function DashboardClientWrapper({
           href: "/dashboard/tutor/availability",
           icon: Calendar,
         },
+        {
+          name: "Time Slots",
+          href: "/dashboard/tutor/timeSlots",
+          icon: Calendar,
+        },
         { name: "Bookings", href: "/dashboard/tutor/bookings", icon: Clock },
 
         { name: "Reviews", href: "/dashboard/tutor/reviews", icon: Star },
-        { name: "Students", href: "/dashboard/tutor/students", icon: Users },
       ],
       ADMIN: [
         {
