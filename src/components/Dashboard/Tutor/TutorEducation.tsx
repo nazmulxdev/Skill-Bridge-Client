@@ -29,6 +29,7 @@ import {
   deleteTutorEducation,
   updateTutorEducation,
 } from "@/actions/tutor.action";
+import { toast } from "sonner";
 
 // Schema
 const formSchema = z
@@ -56,6 +57,23 @@ const formSchema = z
     },
   );
 
+// Helper to format error message
+const getErrorMessage = (error: any): string => {
+  if (!error) return "An unknown error occurred";
+  if (typeof error === "object" && error !== null) {
+    if (error.message) return error.message;
+    if (error.error?.message) return error.error.message;
+    return "Operation failed. Please try again.";
+  }
+  if (typeof error === "string") {
+    if (error.includes("[object Object]")) {
+      return "Operation failed. Please try again.";
+    }
+    return error;
+  }
+  return "Something went wrong. Please try again.";
+};
+
 export function TutorEducation({ tutorProfile, isLocked }: StepProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -79,6 +97,9 @@ export function TutorEducation({ tutorProfile, isLocked }: StepProps) {
     onSubmit: async ({ value }) => {
       setIsPending(true);
       setError(null);
+      const toastId = toast.loading(
+        editingId ? "Updating education..." : "Adding education...",
+      );
 
       try {
         // Clean up the data
@@ -95,18 +116,22 @@ export function TutorEducation({ tutorProfile, isLocked }: StepProps) {
           if (!res.data || res.error) {
             throw new Error(res.error?.message || "Failed to update");
           }
+          toast.success("Education updated successfully!", { id: toastId });
         } else {
           const res = await addTutorEducation(cleanedValue);
           if (!res.data || res.error) {
             throw new Error(res.error?.message || "Failed to add");
           }
+          toast.success("Education added successfully!", { id: toastId });
         }
 
         setIsAdding(false);
         setEditingId(null);
         form.reset();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to save");
+        const errorMessage = getErrorMessage(err);
+        setError(errorMessage);
+        toast.error(errorMessage, { id: toastId });
       } finally {
         setIsPending(false);
       }

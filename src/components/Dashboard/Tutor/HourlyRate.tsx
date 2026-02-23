@@ -21,6 +21,7 @@ import {
   createTutorWithServer,
   updateTutorHourlyRate,
 } from "@/actions/tutor.action";
+import { toast } from "sonner";
 
 // Schema
 const formSchema = z.object({
@@ -29,6 +30,23 @@ const formSchema = z.object({
     .min(1, "Hourly rate is required")
     .positive("Must be positive"),
 });
+
+// Helper to format error message
+const getErrorMessage = (error: any): string => {
+  if (!error) return "An unknown error occurred";
+  if (typeof error === "object" && error !== null) {
+    if (error.message) return error.message;
+    if (error.error?.message) return error.error.message;
+    return "Operation failed. Please try again.";
+  }
+  if (typeof error === "string") {
+    if (error.includes("[object Object]")) {
+      return "Operation failed. Please try again.";
+    }
+    return error;
+  }
+  return "Something went wrong. Please try again.";
+};
 
 export function TutorHourlyRate({ tutorProfile, onComplete }: StepProps) {
   const [isEditing, setIsEditing] = useState(!tutorProfile);
@@ -47,8 +65,9 @@ export function TutorHourlyRate({ tutorProfile, onComplete }: StepProps) {
     onSubmit: async ({ value }) => {
       setIsPending(true);
       setError(null);
-
-      console.log(value);
+      const toastId = toast.loading(
+        hasProfile ? "Updating hourly rate..." : "Creating tutor profile...",
+      );
 
       try {
         if (hasProfile) {
@@ -59,6 +78,7 @@ export function TutorHourlyRate({ tutorProfile, onComplete }: StepProps) {
               res.error?.message || "Failed to update hourly rate",
             );
           }
+          toast.success("Hourly rate updated successfully!", { id: toastId });
         } else {
           const res = await createTutorWithServer(value.hourlyRate);
           if (!res.data || res.error) {
@@ -66,11 +86,15 @@ export function TutorHourlyRate({ tutorProfile, onComplete }: StepProps) {
               res.error?.message || "Failed to create tutor profile",
             );
           }
+          toast.success("Tutor profile created successfully!", { id: toastId });
         }
 
         setIsEditing(false);
         if (onComplete) onComplete();
       } catch (err) {
+        const errorMessage = getErrorMessage(err);
+        setError(errorMessage);
+        toast.error(errorMessage, { id: toastId });
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
         setIsPending(false);

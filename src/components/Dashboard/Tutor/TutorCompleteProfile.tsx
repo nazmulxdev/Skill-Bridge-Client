@@ -17,10 +17,70 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TutorBookings } from "./TutorBookings";
-import { CategoryGroup, SubjectItem } from "@/types";
+
+// Import your existing components
+import { TutorHourlyRate } from "./HourlyRate";
+import { TutorEducation } from "./TutorEducation";
+import { TutorSubject } from "./TutorSubject";
+import { TutorAvailability } from "./TutorAvailability";
+import { TutorTimeSlot } from "./TutorTimeSlot";
 
 interface TutorProfileDetailsProps {
   userData: any;
+}
+
+// Define types for better type safety
+interface SubjectItem {
+  id: string;
+  subject: {
+    id: string;
+    name: string;
+    category?: {
+      id: string;
+      name: string;
+      description?: string;
+    } | null;
+  };
+}
+
+interface CategoryGroup {
+  [key: string]: SubjectItem[];
+}
+
+// Define type for review item
+interface ReviewItem {
+  id: string;
+  rating: string;
+  comment?: string;
+  createdAt: string;
+}
+
+// Define type for education item
+interface EducationItem {
+  id: string;
+  degree: string;
+  fieldOfStudy: string;
+  institute: string;
+  startYear: number;
+  endYear?: number | null;
+  isCurrent: boolean;
+}
+
+// Define type for availability item
+interface AvailabilityItem {
+  id: string;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+}
+
+// Define type for time slot item
+interface TimeSlotItem {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  isBooked: boolean;
 }
 
 export function TutorCompleteProfile({ userData }: TutorProfileDetailsProps) {
@@ -50,15 +110,15 @@ export function TutorCompleteProfile({ userData }: TutorProfileDetailsProps) {
     tutorProfiles.reviews?.length > 0
       ? (
           tutorProfiles.reviews.reduce(
-            (acc: number, r: any) => acc + parseFloat(r.rating),
+            (acc: number, r: ReviewItem) => acc + parseFloat(r.rating),
             0,
           ) / tutorProfiles.reviews.length
         ).toFixed(1)
       : "0.0";
 
-  // Group subjects by category
+  // Group subjects by category with proper typing
   const groupedSubjects = tutorProfiles.subjects?.reduce(
-    (acc: CategoryGroup, item: any) => {
+    (acc: CategoryGroup, item: SubjectItem) => {
       const categoryName = item.subject?.category?.name || "Uncategorized";
       if (!acc[categoryName]) {
         acc[categoryName] = [];
@@ -186,158 +246,50 @@ export function TutorCompleteProfile({ userData }: TutorProfileDetailsProps) {
         </Card>
       </div>
 
-      {/* Detailed Tabs */}
-      <Tabs defaultValue="subjects" className="space-y-4">
+      {/* Detailed Tabs with Your Existing Components */}
+      <Tabs defaultValue="hourly" className="space-y-4">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="subjects">Subjects</TabsTrigger>
+          <TabsTrigger value="hourly">Hourly Rate</TabsTrigger>
           <TabsTrigger value="education">Education</TabsTrigger>
+          <TabsTrigger value="subjects">Subjects</TabsTrigger>
           <TabsTrigger value="availability">Availability</TabsTrigger>
+          <TabsTrigger value="timeslots">Time Slots</TabsTrigger>
+        </TabsList>
+
+        {/* Hourly Rate Tab - Using your existing component */}
+        <TabsContent value="hourly">
+          <TutorHourlyRate tutorProfile={tutorProfiles} />
+        </TabsContent>
+
+        {/* Education Tab - Using your existing component */}
+        <TabsContent value="education">
+          <TutorEducation tutorProfile={tutorProfiles} isLocked={false} />
+        </TabsContent>
+
+        {/* Subjects Tab - Using your existing component */}
+        <TabsContent value="subjects">
+          <TutorSubject tutorProfile={tutorProfiles} isLocked={false} />
+        </TabsContent>
+
+        {/* Availability Tab - Using your existing component */}
+        <TabsContent value="availability">
+          <TutorAvailability tutorProfile={tutorProfiles} isLocked={false} />
+        </TabsContent>
+
+        {/* Time Slots Tab - Using your existing component */}
+        <TabsContent value="timeslots">
+          <TutorTimeSlot tutorProfile={tutorProfiles} isLocked={false} />
+        </TabsContent>
+      </Tabs>
+
+      {/* Bookings and Reviews Tabs (Keep these separate) */}
+      <Tabs defaultValue="bookings" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="reviews">Reviews</TabsTrigger>
         </TabsList>
 
-        {/* Subjects Tab */}
-        <TabsContent value="subjects">
-          <Card className="border-border/50 bg-card/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-primary" />
-                Subjects by Category
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {tutorProfiles.subjects?.length > 0 ? (
-                <div className="space-y-6">
-                  {/* Group subjects by category  */}
-                  {groupedSubjects &&
-                    Object.entries(groupedSubjects).map(
-                      ([category, subjects]) => {
-                        const typedSubjects = subjects as SubjectItem[];
-                        return (
-                          <div key={category} className="space-y-3">
-                            {/* Category Header */}
-                            <div className="flex items-center gap-2">
-                              <div className="h-6 w-1 bg-primary rounded-full" />
-                              <h3 className="font-semibold text-lg">
-                                {category}
-                              </h3>
-                              <Badge
-                                variant="outline"
-                                className="ml-2 bg-primary/10 text-primary"
-                              >
-                                {typedSubjects.length}{" "}
-                                {typedSubjects.length === 1
-                                  ? "subject"
-                                  : "subjects"}
-                              </Badge>
-                            </div>
-
-                            {/* Subjects under this category */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-4">
-                              {typedSubjects.map((item: SubjectItem) => (
-                                <div
-                                  key={item.id}
-                                  className="p-3 bg-muted/30 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <span className="font-medium">
-                                      {item.subject?.name}
-                                    </span>
-                                    {item.subject?.category?.description && (
-                                      <span
-                                        className="text-xs text-muted-foreground truncate ml-2"
-                                        title={
-                                          item.subject.category.description
-                                        }
-                                      >
-                                        ℹ️
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      },
-                    )}
-                </div>
-              ) : (
-                <p className="text-muted-foreground">No subjects added yet</p>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Education Tab */}
-        <TabsContent value="education">
-          <Card className="border-border/50 bg-card/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5 text-primary" />
-                Educational Background
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {tutorProfiles.education?.map((edu: any, index: number) => (
-                <div key={edu.id}>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold">
-                        {edu.degree} in {edu.fieldOfStudy}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {edu.institute}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {edu.startYear} -{" "}
-                        {edu.isCurrent ? "Present" : edu.endYear}
-                      </p>
-                    </div>
-                  </div>
-                  {index < tutorProfiles.education.length - 1 && (
-                    <Separator className="my-4" />
-                  )}
-                </div>
-              ))}
-              {tutorProfiles.education?.length === 0 && (
-                <p className="text-muted-foreground">No education added yet</p>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Availability Tab */}
-        <TabsContent value="availability">
-          <Card className="border-border/50 bg-card/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-primary" />
-                Weekly Availability
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3">
-                {tutorProfiles.availabilities?.map((av: any) => (
-                  <div
-                    key={av.id}
-                    className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
-                  >
-                    <span className="font-medium">{av.dayOfWeek}</span>
-                    <span className="text-muted-foreground">
-                      {av.startTime} - {av.endTime}
-                    </span>
-                  </div>
-                ))}
-                {tutorProfiles.availabilities?.length === 0 && (
-                  <p className="text-muted-foreground">No availability set</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* bookings tab */}
+        {/* Bookings Tab */}
         <TabsContent value="bookings">
           <TutorBookings bookings={tutorProfiles.bookings || []} />
         </TabsContent>
@@ -357,41 +309,43 @@ export function TutorCompleteProfile({ userData }: TutorProfileDetailsProps) {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {tutorProfiles.reviews?.map((review: any, index: number) => (
-                <div key={review.id}>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">Student</span>
-                        <div className="flex items-center gap-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={cn(
-                                "h-3 w-3",
-                                star <= Math.round(parseFloat(review.rating))
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : "text-muted-foreground/30",
-                              )}
-                            />
-                          ))}
+              {tutorProfiles.reviews?.map(
+                (review: ReviewItem, index: number) => (
+                  <div key={review.id}>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">Student</span>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={cn(
+                                  "h-3 w-3",
+                                  star <= Math.round(parseFloat(review.rating))
+                                    ? "fill-yellow-400 text-yellow-400"
+                                    : "text-muted-foreground/30",
+                                )}
+                              />
+                            ))}
+                          </div>
                         </div>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(review.createdAt)}
+                        </span>
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDate(review.createdAt)}
-                      </span>
+                      {review.comment && (
+                        <p className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg">
+                          "{review.comment}"
+                        </p>
+                      )}
                     </div>
-                    {review.comment && (
-                      <p className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg">
-                        "{review.comment}"
-                      </p>
+                    {index < tutorProfiles.reviews.length - 1 && (
+                      <Separator className="my-4" />
                     )}
                   </div>
-                  {index < tutorProfiles.reviews.length - 1 && (
-                    <Separator className="my-4" />
-                  )}
-                </div>
-              ))}
+                ),
+              )}
               {tutorProfiles.reviews?.length === 0 && (
                 <p className="text-muted-foreground">No reviews yet</p>
               )}
@@ -400,21 +354,21 @@ export function TutorCompleteProfile({ userData }: TutorProfileDetailsProps) {
         </TabsContent>
       </Tabs>
 
-      {/* Time Slots Section */}
+      {/* Time Slots Section - Keep this for quick view */}
       {tutorProfiles.tutorTimeSlots?.length > 0 && (
         <Card className="border-border/50 bg-card/50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
-              Upcoming Time Slots
+              Upcoming Available Time Slots
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-3">
               {tutorProfiles.tutorTimeSlots
-                .filter((slot: any) => !slot.isBooked)
+                .filter((slot: TimeSlotItem) => !slot.isBooked)
                 .slice(0, 5)
-                .map((slot: any) => (
+                .map((slot: TimeSlotItem) => (
                   <div
                     key={slot.id}
                     className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"

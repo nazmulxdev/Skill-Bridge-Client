@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import * as z from "zod";
-import { Clock, Plus, Pencil, Trash2, Loader2, Lock } from "lucide-react";
+import { Clock, Plus, Pencil, Trash2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -27,11 +27,29 @@ import {
   getAllCategoryWithSubject,
   removeTutorSubject,
 } from "@/actions/tutor.action";
+import { toast } from "sonner";
 
 // Schema
 const formSchema = z.object({
   subjectId: z.string().min(1, "Please select a subject"),
 });
+
+// Helper to format error message
+const getErrorMessage = (error: any): string => {
+  if (!error) return "An unknown error occurred";
+  if (typeof error === "object" && error !== null) {
+    if (error.message) return error.message;
+    if (error.error?.message) return error.error.message;
+    return "Operation failed. Please try again.";
+  }
+  if (typeof error === "string") {
+    if (error.includes("[object Object]")) {
+      return "Operation failed. Please try again.";
+    }
+    return error;
+  }
+  return "Something went wrong. Please try again.";
+};
 
 export function TutorSubject({ tutorProfile, isLocked }: StepProps) {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -59,15 +77,19 @@ export function TutorSubject({ tutorProfile, isLocked }: StepProps) {
     onSubmit: async ({ value }) => {
       setIsPending(true);
       setError(null);
+      const toastId = toast.loading("Adding subject...");
 
       try {
         const res = await addTutorSubjects([value.subjectId]);
         if (!res.data || res.error) {
           throw new Error(res.error?.message || "Failed to add subject");
         }
+        toast.success("Subject added successfully!", { id: toastId });
         form.reset();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to add subject");
+        const errorMessage = getErrorMessage(err);
+        setError(errorMessage);
+        toast.error(errorMessage, { id: toastId });
       } finally {
         setIsPending(false);
       }
@@ -77,14 +99,18 @@ export function TutorSubject({ tutorProfile, isLocked }: StepProps) {
   const handleRemoveSubject = async (subjectId: string) => {
     setIsPending(true);
     setError(null);
+    const toastId = toast.loading("Removing subject...");
     try {
       const res = await removeTutorSubject(subjectId);
 
       if (!res.data || res.error) {
         throw new Error(res.error?.message || "Failed to remove subject");
       }
+      toast.success("Subject removed successfully!", { id: toastId });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to remove subject");
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+      toast.error(errorMessage, { id: toastId });
     } finally {
       setIsPending(false);
     }
