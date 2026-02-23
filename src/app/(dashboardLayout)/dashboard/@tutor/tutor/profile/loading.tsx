@@ -1,4 +1,4 @@
-import { Loader2, User } from "lucide-react";
+import { User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function TutorProfileLoading() {

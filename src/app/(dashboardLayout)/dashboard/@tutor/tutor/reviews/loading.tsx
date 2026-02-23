@@ -1,4 +1,4 @@
-import { Loader2, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function ReviewsLoading() {
