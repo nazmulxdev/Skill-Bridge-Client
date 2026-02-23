@@ -23,6 +23,12 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Availability, StepProps } from "@/types";
+import {
+  addTutorAvailabilities,
+  removeTutorAvailabilities,
+  updateTutorAvailabilities,
+} from "@/actions/tutor.action";
+import { toast } from "sonner";
 
 // Schema
 const formSchema = z
@@ -43,6 +49,7 @@ const formSchema = z
   })
   .refine(
     (data) => {
+      if (!data.startTime || !data.endTime) return false;
       const start = data.startTime.split(":").map(Number);
       const end = data.endTime.split(":").map(Number);
       const startMinutes = start[0] * 60 + start[1];
@@ -62,17 +69,42 @@ const DAYS = [
   "SUNDAY",
 ];
 
+// Helper to format error message
+const getErrorMessage = (error: any): string => {
+  if (!error) return "An unknown error occurred";
+
+  // Handle the [object Object] case
+  if (typeof error === "object" && error !== null) {
+    if (error.message) return error.message;
+    if (error.error?.message) return error.error.message;
+
+    // Try to stringify nicely, but avoid [object Object]
+    try {
+      const str = JSON.stringify(error);
+      if (str && str !== "{}" && !str.includes("[object")) {
+        return str;
+      }
+    } catch {
+      // Ignore stringify errors
+    }
+  }
+
+  if (typeof error === "string") {
+    // Check if it's the dreaded [object Object]
+    if (error.includes("[object Object]")) {
+      return "Operation failed. Please try again.";
+    }
+    return error;
+  }
+
+  return "Something went wrong. Please try again.";
+};
+
 export function TutorAvailability({ tutorProfile, isLocked }: StepProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isPending, setIsPending] = useState(false);
-
-  const [availabilityList, setAvailabilityList] = useState<Availability[]>([
-    { id: "1", dayOfWeek: "MONDAY", startTime: "09:00", endTime: "17:00" },
-    { id: "2", dayOfWeek: "WEDNESDAY", startTime: "10:00", endTime: "18:00" },
-    { id: "3", dayOfWeek: "FRIDAY", startTime: "09:00", endTime: "15:00" },
-  ]);
+  const availabilityList = tutorProfile?.availabilities || [];
 
   const form = useForm({
     defaultValues: {
@@ -84,32 +116,41 @@ export function TutorAvailability({ tutorProfile, isLocked }: StepProps) {
       onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
-      setIsPending(true);
+      const toastId = toast.loading(
+        editingId ? "Updating availability..." : "Adding availability...",
+      );
       setError(null);
 
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
         if (editingId) {
-          setAvailabilityList((prev) =>
-            prev.map((av) =>
-              av.id === editingId
-                ? ({ ...value, id: editingId } as Availability)
-                : av,
-            ),
-          );
+          const res = await updateTutorAvailabilities({
+            id: editingId,
+            ...value,
+          });
+          if (!res.data || res.error) {
+            throw new Error(res.error?.message || "Failed to add subject");
+          }
         } else {
-          const newAv = { ...value, id: Date.now().toString() } as Availability;
-          setAvailabilityList((prev) => [...prev, newAv]);
+          const res = await addTutorAvailabilities(value);
+          if (!res.data || res.error) {
+            throw new Error(res.error?.message || "Failed to add subject");
+          }
         }
-
+        toast.success(
+          editingId
+            ? "Availability updated successfully!"
+            : "Availability added successfully!",
+          {
+            id: toastId,
+          },
+        );
         setIsAdding(false);
         setEditingId(null);
         form.reset();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to save");
-      } finally {
-        setIsPending(false);
+        const errorMessage = getErrorMessage(err);
+        setError(errorMessage);
+        toast.error(errorMessage, { id: toastId });
       }
     },
   });
@@ -123,14 +164,21 @@ export function TutorAvailability({ tutorProfile, isLocked }: StepProps) {
   };
 
   const handleDelete = async (id: string) => {
-    setIsPending(true);
+    const toastId = toast.loading("Removing availability...");
+    setError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setAvailabilityList((prev) => prev.filter((av) => av.id !== id));
+      const res = await removeTutorAvailabilities(id);
+
+      if (!res.data || res.error) {
+        const errorMessage = getErrorMessage(res.error);
+        throw new Error(errorMessage || "Failed to delete");
+      }
+
+      toast.success("Availability removed successfully!", { id: toastId });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete");
-    } finally {
-      setIsPending(false);
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+      toast.error(errorMessage, { id: toastId });
     }
   };
 
@@ -167,39 +215,43 @@ export function TutorAvailability({ tutorProfile, isLocked }: StepProps) {
           </Alert>
         )}
 
-        {/* Availability List */}
+        {/* Availability List - Using database data */}
         <div className="space-y-2">
-          {availabilityList.map((av) => (
-            <div
-              key={av.id}
-              className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
-            >
-              <div>
-                <span className="font-medium">{av.dayOfWeek}</span>
-                <span className="text-muted-foreground ml-4">
-                  {av.startTime} - {av.endTime}
-                </span>
+          {availabilityList.length > 0 ? (
+            availabilityList.map((av: Availability) => (
+              <div
+                key={av.id}
+                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+              >
+                <div>
+                  <span className="font-medium">{av.dayOfWeek}</span>
+                  <span className="text-muted-foreground ml-4">
+                    {av.startTime} - {av.endTime}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEdit(av)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(av.id)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleEdit(av)}
-                  disabled={isPending}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDelete(av.id)}
-                  disabled={isPending}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No availability set. Add your weekly schedule below.
+            </p>
+          )}
         </div>
 
         {/* Add/Edit Form */}
@@ -291,8 +343,6 @@ export function TutorAvailability({ tutorProfile, isLocked }: StepProps) {
                 variant="outline"
                 onClick={() => {
                   setIsAdding(false);
-                  setEditingId(null);
-                  form.reset();
                 }}
               >
                 Cancel
@@ -300,17 +350,8 @@ export function TutorAvailability({ tutorProfile, isLocked }: StepProps) {
               <form.Subscribe
                 selector={(state) => [state.canSubmit]}
                 children={([canSubmit]) => (
-                  <Button type="submit" disabled={!canSubmit || isPending}>
-                    {isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : editingId ? (
-                      "Update"
-                    ) : (
-                      "Add"
-                    )}
+                  <Button type="submit" disabled={!canSubmit}>
+                    {editingId ? "Update" : "Add"}
                   </Button>
                 )}
               />

@@ -1,5 +1,5 @@
 import { env } from "@/env";
-import { Education } from "@/types";
+import { Availability, Education } from "@/types";
 import { cookies } from "next/headers";
 
 export const tutorService = {
@@ -294,6 +294,102 @@ export const tutorService = {
     try {
       const cookieStore = await cookies();
       const res = await fetch(`${env.API_URL}/tutors/subjects/${subjectId}`, {
+        method: "DELETE",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+      });
+      const data = await res.json();
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
+
+  // adding tutor availability
+  addTutorAvailabilities: async function (payload: Partial<Availability>) {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${env.API_URL}/tutors/availabilities`, {
+        method: "POST",
+        headers: {
+          Cookie: cookieStore.toString(),
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
+
+  // update tutor availability
+
+  updateTutorAvailability: async function (payload: Partial<Availability>) {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(
+        `${env.API_URL}/tutors/availabilities/${payload.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            Cookie: cookieStore.toString(),
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
+          body: JSON.stringify(payload),
+        },
+      );
+      const data = await res.json();
+
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
+
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
+
+  // delete tutor availability
+
+  deleteTutorAvailabilities: async function (id: string) {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${env.API_URL}/tutors/availabilities/${id}`, {
         method: "DELETE",
         headers: {
           Cookie: cookieStore.toString(),

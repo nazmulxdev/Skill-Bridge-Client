@@ -1,7 +1,7 @@
 "use server";
 
 import { tutorService } from "@/services/tutor.service.server";
-import { Education } from "@/types";
+import { Availability, Education } from "@/types";
 import { revalidateTag } from "next/cache";
 
 export const createTutorWithServer = async (hourlyRate: number) => {
@@ -37,7 +37,7 @@ export const addTutorEducation = async (payload: Partial<Education>) => {
 
 // update tutor education
 export const updateTutorEducation = async (payload: Partial<Education>) => {
-  const result = await tutorService.createEducation(payload);
+  const result = await tutorService.updateEducation(payload);
 
   if (result.data) {
     revalidateTag("tutor-profile", "max");
@@ -78,6 +78,42 @@ export const addTutorSubjects = async (subjectIds: string[]) => {
 
 export const removeTutorSubject = async (subjectId: string) => {
   const result = await tutorService.removeTutorSubject(subjectId);
+  if (result.data) {
+    revalidateTag("tutor-profile", "max");
+  }
+  return result;
+};
+
+// add tutor availability
+
+export const addTutorAvailabilities = async (
+  payload: Partial<Availability>,
+) => {
+  const result = await tutorService.addTutorAvailabilities(payload);
+  if (result.data) {
+    revalidateTag("tutor-profile", "max");
+  }
+
+  return result;
+};
+
+// update tutor availabilities
+export const updateTutorAvailabilities = async (
+  payload: Partial<Availability>,
+) => {
+  const result = await tutorService.updateTutorAvailability(payload);
+
+  if (result.data) {
+    revalidateTag("tutor-profile", "max");
+  }
+
+  return result;
+};
+
+// removing tutor subject
+
+export const removeTutorAvailabilities = async (id: string) => {
+  const result = await tutorService.deleteTutorAvailabilities(id);
   if (result.data) {
     revalidateTag("tutor-profile", "max");
   }
