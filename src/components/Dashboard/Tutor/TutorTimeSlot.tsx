@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import * as z from "zod";
-import { Calendar, Plus, Trash2, Loader2, Lock } from "lucide-react";
+import { Calendar, Plus, Trash2, Lock, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { StepProps, TimeSlot } from "@/types";
+import {
+  addTutorTimeSlot,
+  deleteTutorTimeSlot,
+  updateTutorTimeSlot,
+} from "@/actions/tutor.action";
+import { toast } from "sonner";
 
 // Schema
 const formSchema = z
@@ -37,6 +43,7 @@ const formSchema = z
   })
   .refine(
     (data) => {
+      if (!data.startTime || !data.endTime) return false;
       const start = data.startTime.split(":").map(Number);
       const end = data.endTime.split(":").map(Number);
       const startMinutes = start[0] * 60 + start[1];
@@ -46,34 +53,43 @@ const formSchema = z
     { message: "End time must be after start time", path: ["endTime"] },
   );
 
+// Helper to format error message
+const getErrorMessage = (error: any): string => {
+  if (!error) return "An unknown error occurred";
+
+  if (typeof error === "object" && error !== null) {
+    if (error.message) return error.message;
+    if (error.error?.message) return error.error.message;
+    return "Operation failed. Please try again.";
+  }
+
+  if (typeof error === "string") {
+    if (error.includes("[object Object]")) {
+      return "Operation failed. Please try again.";
+    }
+    return error;
+  }
+
+  return "Something went wrong. Please try again.";
+};
+
+// Format date for display
+const formatDisplayDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
 export function TutorTimeSlot({ tutorProfile, isLocked }: StepProps) {
   const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isPending, setIsPending] = useState(false);
 
-  const [slots, setSlots] = useState<TimeSlot[]>([
-    {
-      id: "1",
-      date: "2024-02-25",
-      startTime: "10:00",
-      endTime: "11:00",
-      isBooked: false,
-    },
-    {
-      id: "2",
-      date: "2024-02-25",
-      startTime: "14:00",
-      endTime: "15:00",
-      isBooked: false,
-    },
-    {
-      id: "3",
-      date: "2024-02-26",
-      startTime: "11:00",
-      endTime: "12:00",
-      isBooked: true,
-    },
-  ]);
+  // Data directly from database - NO LOCAL STATE
+  const slots = tutorProfile?.tutorTimeSlots || [];
 
   const form = useForm({
     defaultValues: {
@@ -85,36 +101,81 @@ export function TutorTimeSlot({ tutorProfile, isLocked }: StepProps) {
       onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
-      setIsPending(true);
+      const toastId = toast.loading(
+        editingId ? "Updating time slot..." : "Creating time slot...",
+      );
       setError(null);
 
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        const newSlot = {
-          ...value,
-          id: Date.now().toString(),
-          isBooked: false,
-        } as TimeSlot;
-        setSlots((prev) => [...prev, newSlot]);
+        let res;
+
+        if (editingId) {
+          res = await updateTutorTimeSlot({
+            id: editingId,
+            ...value,
+          });
+        } else {
+          res = await addTutorTimeSlot(value);
+        }
+
+        if (!res.data || res.error) {
+          throw new Error(
+            res.error?.message ||
+              (editingId ? "Failed to update" : "Failed to create"),
+          );
+        }
+
+        toast.success(
+          editingId
+            ? "Time slot updated successfully!"
+            : "Time slot created successfully!",
+          { id: toastId },
+        );
+
+        // Reset form and close
         setIsAdding(false);
+        setEditingId(null);
         form.reset();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to create slot");
-      } finally {
-        setIsPending(false);
+        const errorMessage = getErrorMessage(err);
+        setError(errorMessage);
+        toast.error(errorMessage, { id: toastId });
       }
     },
   });
 
+  const handleEdit = (slot: TimeSlot) => {
+    setEditingId(slot.id);
+    setIsAdding(true);
+    // Set form values directly from the slot object
+    form.setFieldValue("date", slot.date.split("T")[0]); // Handle date format
+    form.setFieldValue("startTime", slot.startTime);
+    form.setFieldValue("endTime", slot.endTime);
+  };
+
+  const handleCancel = () => {
+    setIsAdding(false);
+    setEditingId(null);
+    form.reset(); // Reset form to empty values
+  };
+
   const handleDelete = async (id: string) => {
-    setIsPending(true);
+    const toastId = toast.loading("Removing time slot...");
+    setError(null);
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setSlots((prev) => prev.filter((slot) => slot.id !== id));
+      const res = await deleteTutorTimeSlot(id);
+
+      if (!res.data || res.error) {
+        const errorMessage = getErrorMessage(res.error);
+        throw new Error(errorMessage || "Failed to delete");
+      }
+
+      toast.success("Time slot removed successfully!", { id: toastId });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete slot");
-    } finally {
-      setIsPending(false);
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+      toast.error(errorMessage, { id: toastId });
     }
   };
 
@@ -136,12 +197,13 @@ export function TutorTimeSlot({ tutorProfile, isLocked }: StepProps) {
 
   // Group slots by date
   const groupedSlots = slots.reduce(
-    (acc, slot) => {
-      if (!acc[slot.date]) acc[slot.date] = [];
-      acc[slot.date].push(slot);
+    (acc: Record<string, TimeSlot[]>, slot: TimeSlot) => {
+      const dateKey = slot.date.split("T")[0]; // Normalize date key
+      if (!acc[dateKey]) acc[dateKey] = [];
+      acc[dateKey].push(slot);
       return acc;
     },
-    {} as Record<string, TimeSlot[]>,
+    {},
   );
 
   return (
@@ -163,50 +225,68 @@ export function TutorTimeSlot({ tutorProfile, isLocked }: StepProps) {
           </Alert>
         )}
 
-        {/* Slots by Date */}
+        {/* Slots by Date - Direct from database */}
         <div className="space-y-4">
-          {Object.entries(groupedSlots).map(([date, dateSlots]) => (
-            <div key={date}>
-              <h4 className="font-medium mb-2">
-                {new Date(date).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </h4>
-              <div className="space-y-2">
-                {dateSlots.map((slot) => (
-                  <div
-                    key={slot.id}
-                    className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className="font-medium">
-                        {slot.startTime} - {slot.endTime}
-                      </span>
-                      <Badge variant={slot.isBooked ? "secondary" : "outline"}>
-                        {slot.isBooked ? "Booked" : "Available"}
-                      </Badge>
-                    </div>
-                    {!slot.isBooked && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(slot.id)}
-                        disabled={isPending}
+          {Object.entries(groupedSlots).length > 0 ? (
+            Object.entries(groupedSlots).map(([date, dateSlots]) => {
+              const typedSlots = dateSlots as TimeSlot[];
+              return (
+                <div key={date}>
+                  <h4 className="font-medium mb-2">
+                    {formatDisplayDate(date)}
+                  </h4>
+                  <div className="space-y-2">
+                    {typedSlots.map((slot: TimeSlot) => (
+                      <div
+                        key={slot.id}
+                        className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    )}
+                        <div className="flex items-center gap-4">
+                          <span className="font-medium">
+                            {slot.startTime} - {slot.endTime}
+                          </span>
+                          <Badge
+                            variant={slot.isBooked ? "secondary" : "outline"}
+                          >
+                            {slot.isBooked ? "Booked" : "Available"}
+                          </Badge>
+                        </div>
+                        <div className="flex gap-2">
+                          {!slot.isBooked && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEdit(slot)}
+                                disabled={isAdding}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(slot.id)}
+                                disabled={isAdding}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-          ))}
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No time slots created yet. Create your first time slot below.
+            </p>
+          )}
         </div>
 
-        {/* Add Slot Form */}
+        {/* Add/Edit Form */}
         {isAdding && (
           <form
             onSubmit={(e) => {
@@ -216,7 +296,9 @@ export function TutorTimeSlot({ tutorProfile, isLocked }: StepProps) {
             }}
             className="mt-4 p-4 border border-dashed rounded-lg space-y-4"
           >
-            <h4 className="font-medium">Create New Time Slot</h4>
+            <h4 className="font-medium">
+              {editingId ? "Edit Time Slot" : "Create New Time Slot"}
+            </h4>
 
             <div className="grid grid-cols-3 gap-4">
               <form.Field
@@ -228,6 +310,7 @@ export function TutorTimeSlot({ tutorProfile, isLocked }: StepProps) {
                       type="date"
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
+                      min={new Date().toISOString().split("T")[0]} // Can't select past dates
                     />
                     {field.state.meta.errors && (
                       <p className="text-xs text-destructive">
@@ -278,28 +361,14 @@ export function TutorTimeSlot({ tutorProfile, isLocked }: StepProps) {
             </div>
 
             <div className="flex gap-2 justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsAdding(false);
-                  form.reset();
-                }}
-              >
+              <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>
               <form.Subscribe
                 selector={(state) => [state.canSubmit]}
                 children={([canSubmit]) => (
-                  <Button type="submit" disabled={!canSubmit || isPending}>
-                    {isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      "Create Slot"
-                    )}
+                  <Button type="submit" disabled={!canSubmit}>
+                    {editingId ? "Update" : "Create"}
                   </Button>
                 )}
               />
@@ -311,7 +380,11 @@ export function TutorTimeSlot({ tutorProfile, isLocked }: StepProps) {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => setIsAdding(true)}
+            onClick={() => {
+              setIsAdding(true);
+              setEditingId(null);
+              form.reset();
+            }}
           >
             <Plus className="h-4 w-4 mr-2" />
             Create Time Slot

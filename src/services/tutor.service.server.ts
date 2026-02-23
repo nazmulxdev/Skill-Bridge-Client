@@ -1,5 +1,5 @@
 import { env } from "@/env";
-import { Availability, Education } from "@/types";
+import { Availability, Education, TimeSlot } from "@/types";
 import { cookies } from "next/headers";
 
 export const tutorService = {
@@ -396,6 +396,100 @@ export const tutorService = {
         },
         cache: "no-store",
       });
+      const data = await res.json();
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
+
+  // adding tutor time slot
+
+  addTutorTimeSlot: async function (payload: Partial<TimeSlot>) {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${env.API_URL}/tutors/time-slot`, {
+        method: "POST",
+        headers: {
+          Cookie: cookieStore.toString(),
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
+
+  // update tutor time slot
+
+  updateTutorTimeSlot: async function (payload: Partial<TimeSlot>) {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${env.API_URL}/tutors/time-slot/${payload.id}`, {
+        method: "PATCH",
+        headers: {
+          Cookie: cookieStore.toString(),
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
+
+  // delete tutor time slot
+
+  deleteTutorTimeSlot: async function (id: string) {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${env.API_URL}/tutors/time-slot/${id}`, {
+        method: "DELETE",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+      });
+
       const data = await res.json();
       if (!data.success) {
         return {

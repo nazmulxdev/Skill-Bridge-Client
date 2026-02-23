@@ -119,3 +119,35 @@ export const removeTutorAvailabilities = async (id: string) => {
   }
   return result;
 };
+
+// add tutor time slot
+
+export const addTutorTimeSlot = async (payload: Partial<Availability>) => {
+  const result = await tutorService.addTutorTimeSlot(payload);
+  if (result.data) {
+    revalidateTag("tutor-profile", "max");
+  }
+
+  return result;
+};
+
+// update tutor time slot
+export const updateTutorTimeSlot = async (payload: Partial<Availability>) => {
+  const result = await tutorService.updateTutorTimeSlot(payload);
+
+  if (result.data) {
+    revalidateTag("tutor-profile", "max");
+  }
+
+  return result;
+};
+
+// removing tutor subject
+
+export const deleteTutorTimeSlot = async (id: string) => {
+  const result = await tutorService.deleteTutorTimeSlot(id);
+  if (result.data) {
+    revalidateTag("tutor-profile", "max");
+  }
+  return result;
+};
