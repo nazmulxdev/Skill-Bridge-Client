@@ -506,4 +506,34 @@ export const tutorService = {
       };
     }
   },
+
+  // confirming bookings
+
+  confirmPendingBooking: async function (id: string) {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${env.API_URL}/tutors/bookings/confirm/${id}`, {
+        method: "PATCH",
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
 };

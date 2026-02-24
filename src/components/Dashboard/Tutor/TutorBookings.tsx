@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Filter,
   Star,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,8 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { confirmStudentBookedSlot } from "@/actions/tutor.action";
 
 interface TutorBookingsProps {
   bookings: any[];
@@ -58,9 +61,45 @@ const statusConfig = {
   },
 };
 
+// Helper to format error message
+const getErrorMessage = (error: any): string => {
+  if (!error) return "An unknown error occurred";
+  if (typeof error === "object" && error !== null) {
+    if (error.message) return error.message;
+    if (error.error?.message) return error.error.message;
+    return "Operation failed. Please try again.";
+  }
+  if (typeof error === "string") {
+    if (error.includes("[object Object]")) {
+      return "Operation failed. Please try again.";
+    }
+    return error;
+  }
+  return "Something went wrong. Please try again.";
+};
+
 export function TutorBookings({ bookings }: TutorBookingsProps) {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("newest");
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+
+  const handleConfirmBooking = async (bookingId: string) => {
+    setConfirmingId(bookingId);
+    const toastId = toast.loading("Confirming booking...");
+    try {
+      const { data, error } = await confirmStudentBookedSlot(bookingId);
+
+      if (!data || error) {
+        throw new Error(error?.message || "Failed to confirm booking");
+      }
+      toast.success("Booking confirmed successfully!", { id: toastId });
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage, { id: toastId });
+    } finally {
+      setConfirmingId(null);
+    }
+  };
 
   if (!bookings || bookings.length === 0) {
     return (
@@ -207,6 +246,7 @@ export function TutorBookings({ bookings }: TutorBookingsProps) {
           const status =
             statusConfig[booking.status as keyof typeof statusConfig];
           const StatusIcon = status?.icon || AlertCircle;
+          const isConfirming = confirmingId === booking.id;
 
           return (
             <Card
@@ -281,36 +321,46 @@ export function TutorBookings({ bookings }: TutorBookingsProps) {
                   {/* Right Section - Actions */}
                   <div className="flex gap-2 lg:ml-4">
                     {booking.status === "PENDING" && (
-                      <>
-                        <Button
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          Confirm
-                        </Button>
-                        <Button size="sm" variant="destructive">
-                          Cancel
-                        </Button>
-                      </>
-                    )}
-                    {booking.status === "CONFIRM" && (
                       <Button
                         size="sm"
-                        className="bg-blue-600 hover:bg-blue-700"
+                        className="bg-green-600 hover:bg-green-700 min-w-[80px]"
+                        onClick={() => handleConfirmBooking(booking.id)}
+                        disabled={isConfirming}
                       >
-                        Mark Complete
+                        {isConfirming ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                            ...
+                          </>
+                        ) : (
+                          "Confirm"
+                        )}
                       </Button>
                     )}
+                    {booking.status === "CONFIRM" && (
+                      <Badge
+                        variant="outline"
+                        className="bg-green-500/10 text-green-600 border-green-500/20"
+                      >
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Confirmed
+                      </Badge>
+                    )}
                     {booking.status === "COMPLETE" && !booking.review && (
-                      <Button size="sm" variant="outline" disabled>
+                      <Badge
+                        variant="outline"
+                        className="bg-blue-500/10 text-blue-600 border-blue-500/20"
+                      >
+                        <CheckCircle className="h-3 w-3 mr-1" />
                         Awaiting Review
-                      </Button>
+                      </Badge>
                     )}
                     {booking.review && (
                       <Badge
                         variant="outline"
                         className="bg-purple-500/10 text-purple-600"
                       >
+                        <Star className="h-3 w-3 mr-1 fill-purple-600" />
                         Reviewed
                       </Badge>
                     )}

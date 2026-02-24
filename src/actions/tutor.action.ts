@@ -151,3 +151,13 @@ export const deleteTutorTimeSlot = async (id: string) => {
   }
   return result;
 };
+
+// confirming bookings
+
+export const confirmStudentBookedSlot = async (id: string) => {
+  const result = await tutorService.confirmPendingBooking(id);
+  if (result.data) {
+    revalidateTag("tutor-profile", "max");
+  }
+  return result;
+};

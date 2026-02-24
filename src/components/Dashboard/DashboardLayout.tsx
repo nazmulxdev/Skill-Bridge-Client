@@ -19,13 +19,12 @@ import {
   Shield,
   MessageSquare,
   UserCircle,
-  DollarSign,
   User,
   Book,
   GraduationCapIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -319,10 +318,6 @@ export function DashboardClientWrapper({
                     <UserCircle className="mr-2 h-4 w-4" />
                     Profile
                   </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-destructive">
