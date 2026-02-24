@@ -9,6 +9,7 @@ export const createTutorWithServer = async (hourlyRate: number) => {
 
   if (result.data) {
     revalidateTag("tutor-profile", "max");
+    revalidateTag("public-tutors", "max");
   }
 
   return result;
@@ -19,6 +20,7 @@ export const updateTutorHourlyRate = async (hourlyRate: number) => {
 
   if (result.data) {
     revalidateTag("tutor-profile", "max");
+    revalidateTag("public-tutors", "max");
   }
 
   return result;
@@ -30,6 +32,7 @@ export const addTutorEducation = async (payload: Partial<Education>) => {
 
   if (result.data) {
     revalidateTag("tutor-profile", "max");
+    revalidateTag("public-tutors", "max");
   }
 
   return result;
@@ -41,6 +44,7 @@ export const updateTutorEducation = async (payload: Partial<Education>) => {
 
   if (result.data) {
     revalidateTag("tutor-profile", "max");
+    revalidateTag("public-tutors", "max");
   }
 
   return result;
@@ -52,6 +56,7 @@ export const deleteTutorEducation = async (id: string) => {
 
   if (result.data) {
     revalidateTag("tutor-profile", "max");
+    revalidateTag("public-tutors", "max");
   }
 
   return result;
@@ -69,6 +74,7 @@ export const addTutorSubjects = async (subjectIds: string[]) => {
   const result = await tutorService.addingTutorSubjects(subjectIds);
   if (result.data) {
     revalidateTag("tutor-profile", "max");
+    revalidateTag("public-tutors", "max");
   }
 
   return result;
@@ -80,6 +86,7 @@ export const removeTutorSubject = async (subjectId: string) => {
   const result = await tutorService.removeTutorSubject(subjectId);
   if (result.data) {
     revalidateTag("tutor-profile", "max");
+    revalidateTag("public-tutors", "max");
   }
   return result;
 };
@@ -92,6 +99,7 @@ export const addTutorAvailabilities = async (
   const result = await tutorService.addTutorAvailabilities(payload);
   if (result.data) {
     revalidateTag("tutor-profile", "max");
+    revalidateTag("public-tutors", "max");
   }
 
   return result;
@@ -105,6 +113,7 @@ export const updateTutorAvailabilities = async (
 
   if (result.data) {
     revalidateTag("tutor-profile", "max");
+    revalidateTag("public-tutors", "max");
   }
 
   return result;
@@ -116,6 +125,7 @@ export const removeTutorAvailabilities = async (id: string) => {
   const result = await tutorService.deleteTutorAvailabilities(id);
   if (result.data) {
     revalidateTag("tutor-profile", "max");
+    revalidateTag("public-tutors", "max");
   }
   return result;
 };
@@ -126,6 +136,7 @@ export const addTutorTimeSlot = async (payload: Partial<Availability>) => {
   const result = await tutorService.addTutorTimeSlot(payload);
   if (result.data) {
     revalidateTag("tutor-profile", "max");
+    revalidateTag("public-tutors", "max");
   }
 
   return result;
@@ -137,6 +148,7 @@ export const updateTutorTimeSlot = async (payload: Partial<Availability>) => {
 
   if (result.data) {
     revalidateTag("tutor-profile", "max");
+    revalidateTag("public-tutors", "max");
   }
 
   return result;
@@ -148,6 +160,7 @@ export const deleteTutorTimeSlot = async (id: string) => {
   const result = await tutorService.deleteTutorTimeSlot(id);
   if (result.data) {
     revalidateTag("tutor-profile", "max");
+    revalidateTag("public-tutors", "max");
   }
   return result;
 };
@@ -158,6 +171,7 @@ export const confirmStudentBookedSlot = async (id: string) => {
   const result = await tutorService.confirmPendingBooking(id);
   if (result.data) {
     revalidateTag("tutor-profile", "max");
+    revalidateTag("public-tutors", "max");
   }
   return result;
 };
