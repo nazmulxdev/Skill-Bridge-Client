@@ -21,6 +21,8 @@ import {
   User,
   Book,
   GraduationCapIcon,
+  BookAIcon,
+  Paperclip,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -135,21 +137,27 @@ export function DashboardClientWrapper({
         { name: "Reviews", href: "/dashboard/tutor/reviews", icon: Star },
       ],
       ADMIN: [
+        { name: "Manage Users", href: "/dashboard/admin/users", icon: Users },
         {
-          name: "Analytics",
-          href: "/dashboard/admin/analytics",
-          icon: BarChart3,
+          name: "Manage Tutors",
+          href: "/dashboard/admin/tutors",
+          icon: GraduationCapIcon,
         },
-        { name: "Students", href: "/dashboard/admin/students", icon: Users }, // Fixed: was /admin/tutor
-        { name: "All Slots", href: "/dashboard/admin/slots", icon: Calendar },
         {
-          name: "Transactions",
-          href: "/dashboard/admin/transactions",
-          icon: CreditCard,
+          name: "Manage Categories",
+          href: "/dashboard/admin/categories",
+          icon: BookAIcon,
         },
-        { name: "Reports", href: "/dashboard/admin/reports", icon: Shield },
-        { name: "Settings", href: "/dashboard/admin/settings", icon: Settings },
-        { name: "Profile", href: "/dashboard/admin/profile", icon: User },
+        {
+          name: "Manage Subjects",
+          href: "/dashboard/admin/subjects",
+          icon: Book,
+        },
+        {
+          name: "Bookings",
+          href: "/dashboard/admin/bookings",
+          icon: Calendar,
+        },
       ],
     };
     return [...baseNav, ...(roleNav[userRole as keyof typeof roleNav] || [])];

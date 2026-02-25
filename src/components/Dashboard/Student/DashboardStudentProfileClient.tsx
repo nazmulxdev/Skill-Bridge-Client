@@ -122,7 +122,7 @@ export function DashboardStudentProfileClient({
   return (
     <div className="w-full min-h-screen bg-background">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className=" mx-auto space-y-6">
           {/* Profile Header */}
           <Card className="border-border/50 bg-gradient-to-r from-primary/5 via-transparent to-transparent overflow-hidden">
             <CardContent className="p-6">
