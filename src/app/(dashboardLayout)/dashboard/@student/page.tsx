@@ -1,8 +1,17 @@
-export default function StudentDashboard() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold">Student Dashboard</h1>
-      <p className="text-muted-foreground">Welcome to your learning journey</p>
-    </div>
-  );
+import { getStudentProfile } from "@/actions/atudent.action";
+import { DashboardRootPageClient } from "@/components/Dashboard/Student/DashboardRootPageClient";
+import { notFound, redirect } from "next/navigation";
+
+export default async function StudentDashboardPage() {
+  const { data: student, error } = await getStudentProfile();
+
+  if (error || !student) {
+    redirect("/login");
+  }
+
+  if (student.role !== "STUDENT") {
+    notFound();
+  }
+
+  return <DashboardRootPageClient student={student} />;
 }

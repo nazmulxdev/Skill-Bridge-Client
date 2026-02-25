@@ -49,13 +49,6 @@ export default function NotFoundComponent() {
               Back to Home
             </Link>
           </Button>
-
-          <Button size="lg" variant="secondary" className="px-8" asChild>
-            <Link href="#" onClick={() => window.history.back()}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Go Back
-            </Link>
-          </Button>
         </div>
       </div>
     </div>
