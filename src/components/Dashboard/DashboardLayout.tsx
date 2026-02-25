@@ -101,7 +101,7 @@ export function DashboardClientWrapper({
         { name: "Profile", href: "/dashboard/student/profile", icon: User },
         { name: "All Tutors", href: "/dashboard/student/tutors", icon: Users },
         {
-          name: "My Bookings",
+          name: "Sessions",
           href: "/dashboard/student/bookings",
           icon: Clock,
         },
