@@ -17,7 +17,6 @@ import {
   CreditCard,
   BarChart3,
   Shield,
-  MessageSquare,
   UserCircle,
   User,
   Book,
@@ -99,6 +98,7 @@ export function DashboardClientWrapper({
     // role base dashboard routes
     const roleNav = {
       STUDENT: [
+        { name: "Profile", href: "/dashboard/student/profile", icon: User },
         { name: "All Tutors", href: "/dashboard/student/tutors", icon: Users },
         {
           name: "My Bookings",
@@ -107,11 +107,6 @@ export function DashboardClientWrapper({
         },
 
         { name: "Reviews", href: "/dashboard/student/reviews", icon: Star },
-        {
-          name: "Messages",
-          href: "/dashboard/student/messages",
-          icon: MessageSquare,
-        },
       ],
       TUTOR: [
         { name: "Profile", href: "/dashboard/tutor/profile", icon: User },
