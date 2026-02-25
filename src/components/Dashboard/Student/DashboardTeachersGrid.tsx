@@ -276,9 +276,7 @@ export function DashboardTutorsGrid({ tutors }: TutorsGridProps) {
                     {/* View Profile Button */}
                     <div className="mt-6 pt-4 border-t border-border/50 w-full">
                       <Button className="w-full gap-2 group" asChild>
-                        <Link
-                          href={`/dashboard/student/tutors/${tutor.userId}`}
-                        >
+                        <Link href={`/dashboard/student/tutors/${tutor.id}`}>
                           View Profile
                           <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                         </Link>

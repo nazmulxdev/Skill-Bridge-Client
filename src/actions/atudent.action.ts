@@ -15,6 +15,7 @@ export const bookingTimeSlot = async (payload: {
   if (result.data) {
     revalidateTag("student-profile", "max");
     revalidateTag("public-tutors", "max");
+    revalidateTag("tutor-by-id", "max");
   }
   return result;
 };

@@ -1,6 +1,7 @@
 import { getStudentProfile } from "@/actions/atudent.action";
-import { getAllPublicTutor } from "@/actions/public.action";
 import { TutorCompleteProfile } from "@/components/TutorPage/TutorCompleteProfile";
+
+import { publicService } from "@/services/public.service";
 import { notFound } from "next/navigation";
 
 interface TutorPageProps {
@@ -12,28 +13,30 @@ interface TutorPageProps {
 export default async function TutorPage({ params }: TutorPageProps) {
   const { id } = await params;
 
-  // Fetch all tutors and find the one with matching userId
-  const { data, error } = await getAllPublicTutor({ limit: 100 }); // Get enough tutors
-
-  if (error || !data?.data) {
+  if (!id) {
     notFound();
   }
 
-  const tutor = data.data.find((t: any) => t.userId === id);
+  // Fetch tutor data
+  const { data: tutor, error } = await publicService.getTutorById(id);
 
-  if (!tutor) {
+  // Handle API error
+  if (error || !tutor) {
     notFound();
   }
 
-  // Get current student profile if logged in (optional)
+  if (!tutor.userId || !tutor.user) {
+    notFound();
+  }
+
   let studentProfile = null;
   try {
     const studentData = await getStudentProfile();
-    if (studentData.data) {
+    if (studentData?.data) {
       studentProfile = studentData.data;
     }
   } catch (error) {
-    // Student not logged in - that's fine
+    console.log("Student not logged in or error fetching profile:", error);
   }
 
   return <TutorCompleteProfile tutor={tutor} studentProfile={studentProfile} />;

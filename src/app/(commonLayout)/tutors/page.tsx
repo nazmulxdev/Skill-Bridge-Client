@@ -19,7 +19,6 @@ export default async function TutorsPage({ searchParams }: TutorsPageProps) {
   };
 
   const { data, error } = await getAllPublicTutor(params);
-  console.log(data);
 
   return (
     <TutorsClient

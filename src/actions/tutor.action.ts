@@ -172,6 +172,7 @@ export const confirmStudentBookedSlot = async (id: string) => {
   if (result.data) {
     revalidateTag("tutor-profile", "max");
     revalidateTag("public-tutors", "max");
+    revalidateTag("tutor-by-id", "max");
   }
   return result;
 };

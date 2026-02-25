@@ -23,8 +23,6 @@ export const publicService = {
         });
       }
 
-      console.log("🔍 Fetching URL:", url.toString());
-
       const res = await fetch(url.toString(), {
         cache: "no-store",
         next: {
@@ -32,22 +30,36 @@ export const publicService = {
         },
       });
 
+      const data = await res.json();
+      console.log(data);
+      if (!data.success) {
+        return { data: null, error: data.error };
+      }
+
+      return { data: data.data, error: null };
+    } catch (error) {
+      return { data: null, error: error };
+    }
+  },
+
+  getTutorById: async function (tutorId: string) {
+    try {
+      const res = await fetch(`${env.API_URL}/public/tutor/${tutorId}`, {
+        cache: "no-store",
+        next: {
+          tags: ["tutor-by-id"],
+        },
+      });
+
       console.log("📡 Response status:", res.status);
 
       const data = await res.json();
       console.log(data);
+
+      console.log(data);
       if (!data.success) {
-        console.error("❌ API Error:", data.error);
         return { data: null, error: data.error };
       }
-
-      // Check the structure of data.data
-      console.log("✅ Success data structure:", {
-        hasMeta: !!data.data?.meta,
-        hasData: !!data.data?.data,
-        meta: data.data?.meta,
-        dataLength: data.data?.data?.length,
-      });
 
       return { data: data.data, error: null };
     } catch (error) {
