@@ -34,4 +34,44 @@ export const studentServices = {
       };
     }
   },
+
+  // booking slot
+
+  bookingSlot: async function (payload: {
+    timeSlotId: string;
+    subjectId: string;
+  }) {
+    try {
+      const cookieStore = await cookies();
+
+      const res = await fetch(
+        `${env.API_URL}/students/bookings/${payload?.timeSlotId}`,
+        {
+          method: "POST",
+          headers: {
+            Cookie: cookieStore.toString(),
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
+          body: JSON.stringify({ subjectId: payload.subjectId }),
+        },
+      );
+      const data = await res.json();
+
+      console.log(data);
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
 };
