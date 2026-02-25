@@ -99,17 +99,13 @@ export function DashboardClientWrapper({
     // role base dashboard routes
     const roleNav = {
       STUDENT: [
-        {
-          name: "Find Slots",
-          href: "/dashboard/student/slots",
-          icon: Calendar,
-        },
+        { name: "All Tutors", href: "/dashboard/student/tutors", icon: Users },
         {
           name: "My Bookings",
           href: "/dashboard/student/bookings",
           icon: Clock,
         },
-        { name: "My Tutors", href: "/dashboard/student/tutors", icon: Users },
+
         { name: "Reviews", href: "/dashboard/student/reviews", icon: Star },
         {
           name: "Messages",

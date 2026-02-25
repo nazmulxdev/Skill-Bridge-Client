@@ -55,25 +55,6 @@ interface ReviewItem {
   createdAt: string;
 }
 
-// Define type for education item
-interface EducationItem {
-  id: string;
-  degree: string;
-  fieldOfStudy: string;
-  institute: string;
-  startYear: number;
-  endYear?: number | null;
-  isCurrent: boolean;
-}
-
-// Define type for availability item
-interface AvailabilityItem {
-  id: string;
-  dayOfWeek: string;
-  startTime: string;
-  endTime: string;
-}
-
 // Define type for time slot item
 interface TimeSlotItem {
   id: string;
@@ -115,19 +96,6 @@ export function TutorCompleteProfile({ userData }: TutorProfileDetailsProps) {
           ) / tutorProfiles.reviews.length
         ).toFixed(1)
       : "0.0";
-
-  // Group subjects by category with proper typing
-  const groupedSubjects = tutorProfiles.subjects?.reduce(
-    (acc: CategoryGroup, item: SubjectItem) => {
-      const categoryName = item.subject?.category?.name || "Uncategorized";
-      if (!acc[categoryName]) {
-        acc[categoryName] = [];
-      }
-      acc[categoryName].push(item);
-      return acc;
-    },
-    {} as CategoryGroup,
-  );
 
   return (
     <div className="space-y-6">

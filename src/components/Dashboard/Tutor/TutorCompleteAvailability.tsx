@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +34,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import { Availability } from "@/types";
 import {
   addTutorAvailabilities,

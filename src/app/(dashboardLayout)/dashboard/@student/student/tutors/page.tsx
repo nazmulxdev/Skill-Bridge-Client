@@ -1,6 +1,6 @@
 import { getAllPublicTutor } from "@/actions/public.action";
 import { getAllCategoryWithSubject } from "@/actions/tutor.action";
-import { TutorsClient } from "@/components/TutorPage/TeachersClient";
+import { DashboardTutorsClient } from "@/components/Dashboard/Student/DashboardTeachersClient";
 import { TutorsPageProps } from "@/types";
 
 export default async function TutorsPage({ searchParams }: TutorsPageProps) {
@@ -22,7 +22,7 @@ export default async function TutorsPage({ searchParams }: TutorsPageProps) {
   console.log(data);
 
   return (
-    <TutorsClient
+    <DashboardTutorsClient
       initialData={data}
       initialError={error}
       initialParams={{ search, category, minPrice, maxPrice, rating, page }}

@@ -1,4 +1,3 @@
-// components/NavBar/NavBar.tsx - SERVER COMPONENT (remove "use client")
 import Link from "next/link";
 import { getAuthSession } from "@/actions/auth.action";
 import BrandLogo from "../WebLogo/BrandLogo";
@@ -7,7 +6,6 @@ import { ModeToggle } from "../Theme/ModeToggle";
 import { Button } from "../ui/button";
 import NavbarClient from "./NavBarClient";
 import { SignOutButton } from "../AuthLayout/SignoutButton";
-// Import client component for interactive parts
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -25,7 +23,7 @@ export default async function Navbar() {
       <div className="mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between">
         <BrandLogo />
 
-        {/* Desktop Nav - Can stay in server component */}
+        {/* Desktop Nav  */}
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <Link
@@ -38,7 +36,7 @@ export default async function Navbar() {
             </Link>
           ))}
 
-          {/* Dashboard link - Only shown if user exists */}
+          {/* Dashboard link  */}
           {user && (
             <Link
               href="/dashboard"
@@ -76,7 +74,7 @@ export default async function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu Button - Needs client component */}
+        {/* Mobile Menu Button  */}
         <NavbarClient user={user} role={role} navLinks={navLinks} />
       </div>
     </header>
