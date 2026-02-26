@@ -393,7 +393,9 @@ export function TutorCompleteProfile({
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold">Student</span>
+                              <span className="font-semibold">
+                                {review?.student?.name} ({review?.rating})
+                              </span>
                               <div className="flex items-center gap-1">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                   <Star

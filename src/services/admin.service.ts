@@ -1,10 +1,6 @@
 import { env } from "@/env";
+import { Status } from "@/types";
 import { cookies } from "next/headers";
-
-enum Status {
-  BANNED,
-  UNBANNED,
-}
 
 export const adminService = {
   // get all category
@@ -217,13 +213,10 @@ export const adminService = {
 
   //   update category
 
-  updateSubject: async function (payload: {
-    categoryId: string;
-    name: string;
-  }) {
+  updateSubject: async function (payload: { subjectId: string; name: string }) {
     try {
       const cookieStore = await cookies();
-      const res = await fetch(`${env.API_URL}/subjects/${payload.categoryId}`, {
+      const res = await fetch(`${env.API_URL}/subjects/${payload.subjectId}`, {
         method: "PATCH",
         headers: {
           Cookie: cookieStore.toString(),
@@ -264,6 +257,39 @@ export const adminService = {
           Cookie: cookieStore.toString(),
         },
         cache: "no-store",
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        return {
+          data: null,
+          error: data.error,
+        };
+      }
+
+      return { data: data.data, error: null };
+    } catch (error) {
+      console.error(error);
+      return {
+        data: null,
+        error: error,
+      };
+    }
+  },
+
+  // get all users and tutors
+
+  getAllUsers: async function () {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${env.API_URL}/admin/users`, {
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
+        next: {
+          tags: ["admin-users"],
+        },
       });
       const data = await res.json();
 
