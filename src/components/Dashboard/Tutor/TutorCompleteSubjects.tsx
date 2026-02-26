@@ -42,6 +42,7 @@ import {
   removeTutorSubject,
 } from "@/actions/tutor.action";
 import { toast } from "sonner";
+import { FieldError } from "@/components/ui/field";
 
 // Schema
 const formSchema = z.object({
@@ -331,49 +332,52 @@ export function TutorCompleteSubjects({
                 <div className="flex flex-col sm:flex-row gap-3">
                   <form.Field
                     name="subjectId"
-                    children={(field) => (
-                      <div className="flex-1">
-                        <Select
-                          value={field.state.value}
-                          onValueChange={field.handleChange}
-                        >
-                          <SelectTrigger className="bg-background/50 border-border/50 h-11">
-                            <SelectValue placeholder="Select a subject to add" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.map((category) => (
-                              <div key={category.id}>
-                                {/* Category header */}
-                                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
-                                  {category.name}
+                    children={(field) => {
+                      const isInvalid =
+                        field.state.meta.isTouched && !field.state.meta.isValid;
+                      return (
+                        <div className="flex-1">
+                          <Select
+                            value={field.state.value}
+                            onValueChange={field.handleChange}
+                          >
+                            <SelectTrigger className="bg-background/50 border-border/50 h-11">
+                              <SelectValue placeholder="Select a subject to add" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map((category) => (
+                                <div key={category.id}>
+                                  {/* Category header */}
+                                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
+                                    {category.name}
+                                  </div>
+                                  {/* Subjects under category */}
+                                  {category.subjects
+                                    .filter(
+                                      (subject) =>
+                                        !existingSubjectIds.includes(
+                                          subject.id,
+                                        ),
+                                    )
+                                    .map((subject) => (
+                                      <SelectItem
+                                        key={subject.id}
+                                        value={subject.id}
+                                        className="pl-6"
+                                      >
+                                        {subject.name}
+                                      </SelectItem>
+                                    ))}
                                 </div>
-                                {/* Subjects under category */}
-                                {category.subjects
-                                  .filter(
-                                    (subject) =>
-                                      !existingSubjectIds.includes(subject.id),
-                                  )
-                                  .map((subject) => (
-                                    <SelectItem
-                                      key={subject.id}
-                                      value={subject.id}
-                                      className="pl-6"
-                                    >
-                                      {subject.name}
-                                    </SelectItem>
-                                  ))}
-                              </div>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {field.state.meta.errors && (
-                          <p className="text-xs text-destructive flex items-center gap-1 mt-1">
-                            <AlertCircle className="h-3 w-3" />
-                            {field.state.meta.errors.join(", ")}
-                          </p>
-                        )}
-                      </div>
-                    )}
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {isInvalid && (
+                            <FieldError errors={field.state.meta.errors} />
+                          )}
+                        </div>
+                      );
+                    }}
                   />
 
                   <form.Subscribe

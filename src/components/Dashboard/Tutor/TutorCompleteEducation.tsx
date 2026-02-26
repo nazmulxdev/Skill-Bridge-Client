@@ -42,6 +42,7 @@ import {
   updateTutorEducation,
 } from "@/actions/tutor.action";
 import { toast } from "sonner";
+import { FieldError } from "@/components/ui/field";
 
 // Schema
 const formSchema = z
@@ -399,132 +400,147 @@ export function TutorCompleteEducation({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <form.Field
                       name="degree"
-                      children={(field) => (
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Degree</Label>
-                          <Input
-                            value={field.state.value}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            placeholder="e.g., Bachelor of Science"
-                            className="bg-background/50 border-border/50"
-                          />
-                          {field.state.meta.errors && (
-                            <p className="text-xs text-destructive flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {field.state.meta.errors.join(", ")}
-                            </p>
-                          )}
-                        </div>
-                      )}
+                      children={(field) => {
+                        const isInvalid =
+                          field.state.meta.isTouched &&
+                          !field.state.meta.isValid;
+                        return (
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">
+                              Degree
+                            </Label>
+                            <Input
+                              value={field.state.value}
+                              onChange={(e) =>
+                                field.handleChange(e.target.value)
+                              }
+                              placeholder="e.g., Bachelor of Science"
+                              className="bg-background/50 border-border/50"
+                            />
+                            {isInvalid && (
+                              <FieldError errors={field.state.meta.errors} />
+                            )}
+                          </div>
+                        );
+                      }}
                     />
                     <form.Field
                       name="institute"
-                      children={(field) => (
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">
-                            Institution
-                          </Label>
-                          <Input
-                            value={field.state.value}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            placeholder="e.g., MIT"
-                            className="bg-background/50 border-border/50"
-                          />
-                          {field.state.meta.errors && (
-                            <p className="text-xs text-destructive flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {field.state.meta.errors.join(", ")}
-                            </p>
-                          )}
-                        </div>
-                      )}
+                      children={(field) => {
+                        const isInvalid =
+                          field.state.meta.isTouched &&
+                          !field.state.meta.isValid;
+                        return (
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">
+                              Institution
+                            </Label>
+                            <Input
+                              value={field.state.value}
+                              onChange={(e) =>
+                                field.handleChange(e.target.value)
+                              }
+                              placeholder="e.g., MIT"
+                              className="bg-background/50 border-border/50"
+                            />
+                            {isInvalid && (
+                              <FieldError errors={field.state.meta.errors} />
+                            )}
+                          </div>
+                        );
+                      }}
                     />
                   </div>
 
                   <form.Field
                     name="fieldOfStudy"
-                    children={(field) => (
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">
-                          Field of Study
-                        </Label>
-                        <Input
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          placeholder="e.g., Computer Science"
-                          className="bg-background/50 border-border/50"
-                        />
-                        {field.state.meta.errors && (
-                          <p className="text-xs text-destructive flex items-center gap-1">
-                            <AlertCircle className="h-3 w-3" />
-                            {field.state.meta.errors.join(", ")}
-                          </p>
-                        )}
-                      </div>
-                    )}
+                    children={(field) => {
+                      const isInvalid =
+                        field.state.meta.isTouched && !field.state.meta.isValid;
+                      return (
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">
+                            Field of Study
+                          </Label>
+                          <Input
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            placeholder="e.g., Computer Science"
+                            className="bg-background/50 border-border/50"
+                          />
+                          {isInvalid && (
+                            <FieldError errors={field.state.meta.errors} />
+                          )}
+                        </div>
+                      );
+                    }}
                   />
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <form.Field
                       name="startYear"
-                      children={(field) => (
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">
-                            Start Year
-                          </Label>
-                          <Input
-                            type="number"
-                            value={field.state.value}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              field.handleChange(
-                                val === ""
-                                  ? new Date().getFullYear()
-                                  : Number(val),
-                              );
-                            }}
-                            className="bg-background/50 border-border/50"
-                          />
-                          {field.state.meta.errors && (
-                            <p className="text-xs text-destructive flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {field.state.meta.errors.join(", ")}
-                            </p>
-                          )}
-                        </div>
-                      )}
+                      children={(field) => {
+                        const isInvalid =
+                          field.state.meta.isTouched &&
+                          !field.state.meta.isValid;
+                        return (
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">
+                              Start Year
+                            </Label>
+                            <Input
+                              type="number"
+                              value={field.state.value}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                field.handleChange(
+                                  val === ""
+                                    ? new Date().getFullYear()
+                                    : Number(val),
+                                );
+                              }}
+                              className="bg-background/50 border-border/50"
+                            />
+                            {isInvalid && (
+                              <FieldError errors={field.state.meta.errors} />
+                            )}
+                          </div>
+                        );
+                      }}
                     />
 
                     <form.Field
                       name="endYear"
-                      children={(field) => (
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">
-                            End Year
-                          </Label>
-                          <Input
-                            type="number"
-                            value={isCurrent ? "" : field.state.value || ""}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              field.handleChange(
-                                val === "" ? null : Number(val),
-                              );
-                            }}
-                            disabled={isCurrent}
-                            className={cn(
-                              "bg-background/50 border-border/50",
-                              isCurrent && "opacity-50 cursor-not-allowed",
+                      children={(field) => {
+                        const isInvalid =
+                          field.state.meta.isTouched &&
+                          !field.state.meta.isValid;
+                        return (
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">
+                              End Year
+                            </Label>
+                            <Input
+                              type="number"
+                              value={isCurrent ? "" : field.state.value || ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                field.handleChange(
+                                  val === "" ? null : Number(val),
+                                );
+                              }}
+                              disabled={isCurrent}
+                              className={cn(
+                                "bg-background/50 border-border/50",
+                                isCurrent && "opacity-50 cursor-not-allowed",
+                              )}
+                            />
+                            {isInvalid && (
+                              <FieldError errors={field.state.meta.errors} />
                             )}
-                          />
-                          {field.state.meta.errors && (
-                            <p className="text-xs text-destructive flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {field.state.meta.errors.join(", ")}
-                            </p>
-                          )}
-                        </div>
-                      )}
+                          </div>
+                        );
+                      }}
                     />
 
                     <form.Field

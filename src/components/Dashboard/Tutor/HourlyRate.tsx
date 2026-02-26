@@ -22,6 +22,7 @@ import {
   updateTutorHourlyRate,
 } from "@/actions/tutor.action";
 import { toast } from "sonner";
+import { FieldError } from "@/components/ui/field";
 
 // Schema
 const formSchema = z.object({
@@ -161,25 +162,29 @@ export function TutorHourlyRate({ tutorProfile, onComplete }: StepProps) {
           >
             <form.Field
               name="hourlyRate"
-              children={(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor={field.name}>Hourly Rate ($)</Label>
-                  <Input
-                    id={field.name}
-                    type="number"
-                    value={field.state.value === 0 ? "" : field.state.value}
-                    onChange={(e) => field.handleChange(Number(e.target.value))}
-                    placeholder="45"
-                    min="1"
-                    step="0.01"
-                  />
-                  {field.state.meta.errors && (
-                    <p className="text-sm text-destructive">
-                      {field.state.meta.errors.join(", ")}
-                    </p>
-                  )}
-                </div>
-              )}
+              children={(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <div className="space-y-2">
+                    <Label htmlFor={field.name}>Hourly Rate ($)</Label>
+                    <Input
+                      id={field.name}
+                      type="number"
+                      value={field.state.value === 0 ? "" : field.state.value}
+                      onChange={(e) =>
+                        field.handleChange(Number(e.target.value))
+                      }
+                      placeholder="45"
+                      min="1"
+                      step="0.01"
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </div>
+                );
+              }}
             />
 
             <div className="flex gap-2">

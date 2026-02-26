@@ -28,6 +28,7 @@ import {
   removeTutorSubject,
 } from "@/actions/tutor.action";
 import { toast } from "sonner";
+import { FieldError } from "@/components/ui/field";
 
 // Schema
 const formSchema = z.object({
@@ -228,52 +229,54 @@ export function TutorSubject({ tutorProfile, isLocked }: StepProps) {
             <div className="flex gap-2">
               <form.Field
                 name="subjectId"
-                children={(field) => (
-                  <div className="flex-1">
-                    <Select
-                      value={field.state.value}
-                      onValueChange={field.handleChange}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a subject to add" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <div key={category.id}>
-                            {/* Category header as disabled item */}
-                            <SelectItem
-                              value={`category-${category.id}`}
-                              disabled
-                              className="font-semibold text-primary bg-muted/50"
-                            >
-                              {category.name}
-                            </SelectItem>
-                            {/* Subjects under category */}
-                            {category.subjects
-                              .filter(
-                                (subject) =>
-                                  !existingSubjectIds.includes(subject.id),
-                              )
-                              .map((subject) => (
-                                <SelectItem
-                                  key={subject.id}
-                                  value={subject.id}
-                                  className="pl-6"
-                                >
-                                  {subject.name}
-                                </SelectItem>
-                              ))}
-                          </div>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {field.state.meta.errors && (
-                      <p className="text-xs text-destructive mt-1">
-                        {field.state.meta.errors.join(", ")}
-                      </p>
-                    )}
-                  </div>
-                )}
+                children={(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <div className="flex-1">
+                      <Select
+                        value={field.state.value}
+                        onValueChange={field.handleChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a subject to add" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((category) => (
+                            <div key={category.id}>
+                              {/* Category header as disabled item */}
+                              <SelectItem
+                                value={`category-${category.id}`}
+                                disabled
+                                className="font-semibold text-primary bg-muted/50"
+                              >
+                                {category.name}
+                              </SelectItem>
+                              {/* Subjects under category */}
+                              {category.subjects
+                                .filter(
+                                  (subject) =>
+                                    !existingSubjectIds.includes(subject.id),
+                                )
+                                .map((subject) => (
+                                  <SelectItem
+                                    key={subject.id}
+                                    value={subject.id}
+                                    className="pl-6"
+                                  >
+                                    {subject.name}
+                                  </SelectItem>
+                                ))}
+                            </div>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
+                    </div>
+                  );
+                }}
               />
 
               <form.Subscribe

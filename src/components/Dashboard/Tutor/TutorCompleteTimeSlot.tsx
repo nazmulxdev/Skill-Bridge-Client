@@ -30,7 +30,6 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { TimeSlot } from "@/types";
 import {
@@ -39,6 +38,7 @@ import {
   updateTutorTimeSlot,
 } from "@/actions/tutor.action";
 import { toast } from "sonner";
+import { FieldError } from "@/components/ui/field";
 
 // Schema
 const formSchema = z
@@ -93,16 +93,6 @@ const formatDisplayDate = (dateString: string) => {
     year: "numeric",
     month: "long",
     day: "numeric",
-  });
-};
-
-// Format date for grouping
-const formatGroupDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
   });
 };
 
@@ -472,70 +462,82 @@ export function TutorCompleteTimeSlot({
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <form.Field
                       name="date"
-                      children={(field) => (
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Date</Label>
-                          <Input
-                            type="date"
-                            value={field.state.value}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            min={new Date().toISOString().split("T")[0]}
-                            className="bg-background/50 border-border/50"
-                          />
-                          {field.state.meta.errors && (
-                            <p className="text-xs text-destructive flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {field.state.meta.errors.join(", ")}
-                            </p>
-                          )}
-                        </div>
-                      )}
+                      children={(field) => {
+                        const isInvalid =
+                          field.state.meta.isTouched &&
+                          !field.state.meta.isValid;
+                        return (
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">Date</Label>
+                            <Input
+                              type="date"
+                              value={field.state.value}
+                              onChange={(e) =>
+                                field.handleChange(e.target.value)
+                              }
+                              min={new Date().toISOString().split("T")[0]}
+                              className="bg-background/50 border-border/50"
+                            />
+                            {isInvalid && (
+                              <FieldError errors={field.state.meta.errors} />
+                            )}
+                          </div>
+                        );
+                      }}
                     />
 
                     <form.Field
                       name="startTime"
-                      children={(field) => (
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">
-                            Start Time
-                          </Label>
-                          <Input
-                            value={field.state.value}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            placeholder="10:00"
-                            className="bg-background/50 border-border/50"
-                          />
-                          {field.state.meta.errors && (
-                            <p className="text-xs text-destructive flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {field.state.meta.errors.join(", ")}
-                            </p>
-                          )}
-                        </div>
-                      )}
+                      children={(field) => {
+                        const isInvalid =
+                          field.state.meta.isTouched &&
+                          !field.state.meta.isValid;
+                        return (
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">
+                              Start Time
+                            </Label>
+                            <Input
+                              value={field.state.value}
+                              onChange={(e) =>
+                                field.handleChange(e.target.value)
+                              }
+                              placeholder="10:00"
+                              className="bg-background/50 border-border/50"
+                            />
+                            {isInvalid && (
+                              <FieldError errors={field.state.meta.errors} />
+                            )}
+                          </div>
+                        );
+                      }}
                     />
 
                     <form.Field
                       name="endTime"
-                      children={(field) => (
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">
-                            End Time
-                          </Label>
-                          <Input
-                            value={field.state.value}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            placeholder="11:00"
-                            className="bg-background/50 border-border/50"
-                          />
-                          {field.state.meta.errors && (
-                            <p className="text-xs text-destructive flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {field.state.meta.errors.join(", ")}
-                            </p>
-                          )}
-                        </div>
-                      )}
+                      children={(field) => {
+                        const isInvalid =
+                          field.state.meta.isTouched &&
+                          !field.state.meta.isValid;
+                        return (
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">
+                              End Time
+                            </Label>
+                            <Input
+                              value={field.state.value}
+                              onChange={(e) =>
+                                field.handleChange(e.target.value)
+                              }
+                              placeholder="11:00"
+                              className="bg-background/50 border-border/50"
+                            />
+                            {isInvalid && (
+                              <FieldError errors={field.state.meta.errors} />
+                            )}
+                          </div>
+                        );
+                      }}
                     />
                   </div>
 

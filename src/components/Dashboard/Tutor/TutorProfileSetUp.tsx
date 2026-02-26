@@ -47,7 +47,7 @@ export function TutorSetup({ tutorProfile }: TutorSetupProps) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-full mx-auto space-y-8">
       {/* Header */}
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold">Complete Your Tutor Profile</h1>

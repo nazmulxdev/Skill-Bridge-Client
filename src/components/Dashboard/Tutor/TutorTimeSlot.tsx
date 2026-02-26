@@ -23,6 +23,7 @@ import {
   updateTutorTimeSlot,
 } from "@/actions/tutor.action";
 import { toast } from "sonner";
+import { FieldError } from "@/components/ui/field";
 
 // Schema
 const formSchema = z
@@ -303,60 +304,66 @@ export function TutorTimeSlot({ tutorProfile, isLocked }: StepProps) {
             <div className="grid grid-cols-3 gap-4">
               <form.Field
                 name="date"
-                children={(field) => (
-                  <div className="space-y-2">
-                    <Label>Date</Label>
-                    <Input
-                      type="date"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      min={new Date().toISOString().split("T")[0]} // Can't select past dates
-                    />
-                    {field.state.meta.errors && (
-                      <p className="text-xs text-destructive">
-                        {field.state.meta.errors.join(", ")}
-                      </p>
-                    )}
-                  </div>
-                )}
+                children={(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <div className="space-y-2">
+                      <Label>Date</Label>
+                      <Input
+                        type="date"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        min={new Date().toISOString().split("T")[0]}
+                      />
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
+                    </div>
+                  );
+                }}
               />
 
               <form.Field
                 name="startTime"
-                children={(field) => (
-                  <div className="space-y-2">
-                    <Label>Start Time</Label>
-                    <Input
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="10:00"
-                    />
-                    {field.state.meta.errors && (
-                      <p className="text-xs text-destructive">
-                        {field.state.meta.errors.join(", ")}
-                      </p>
-                    )}
-                  </div>
-                )}
+                children={(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <div className="space-y-2">
+                      <Label>Start Time</Label>
+                      <Input
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder="10:00"
+                      />
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
+                    </div>
+                  );
+                }}
               />
 
               <form.Field
                 name="endTime"
-                children={(field) => (
-                  <div className="space-y-2">
-                    <Label>End Time</Label>
-                    <Input
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="11:00"
-                    />
-                    {field.state.meta.errors && (
-                      <p className="text-xs text-destructive">
-                        {field.state.meta.errors.join(", ")}
-                      </p>
-                    )}
-                  </div>
-                )}
+                children={(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <div className="space-y-2">
+                      <Label>End Time</Label>
+                      <Input
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder="11:00"
+                      />
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
+                    </div>
+                  );
+                }}
               />
             </div>
 
