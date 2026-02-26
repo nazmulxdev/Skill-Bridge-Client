@@ -340,13 +340,14 @@ export function DashboardAdminSubjectsClient({
         <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
           <div className="max-w-full mx-auto space-y-4 sm:space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold">
+                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
                   Subject Management
                 </h1>
-                <p className="text-sm sm:text-base text-muted-foreground mt-1">
-                  Create, edit, and manage subjects under categories
+                <p className="text-sm text-muted-foreground mt-1">
+                  Create, edit, and manage subjects under categories in your
+                  platform.
                 </p>
               </div>
               <div className="flex items-center gap-2">

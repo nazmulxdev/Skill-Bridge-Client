@@ -545,31 +545,33 @@ export function DashboardAdminTutorsClient({
         <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
           <div className="max-w-full mx-auto space-y-4 sm:space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold">
+                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
                   Tutor Management
                 </h1>
-                <p className="text-sm sm:text-base text-muted-foreground mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Manage all tutors, feature/unfeature profiles, and monitor
                   performance
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className="h-9 sm:h-10 w-full sm:w-auto"
-              >
-                <RefreshCw
-                  className={cn(
-                    "h-3 w-3 sm:h-4 sm:w-4 mr-2",
-                    refreshing && "animate-spin",
-                  )}
-                />
-                <span className="text-xs sm:text-sm">Refresh</span>
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className="h-9 sm:h-10"
+                >
+                  <RefreshCw
+                    className={cn(
+                      "h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2",
+                      refreshing && "animate-spin",
+                    )}
+                  />
+                  <span className="text-xs sm:text-sm">Refresh</span>
+                </Button>
+              </div>
             </div>
 
             {/* Stats Cards*/}

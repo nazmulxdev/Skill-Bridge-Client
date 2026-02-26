@@ -411,12 +411,13 @@ export function DashboardAdminUsersClient({
       <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <div className="max-w-full mx-auto space-y-4 sm:space-y-6">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
                 User Management
               </h1>
-              <p className="text-sm sm:text-base text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Manage users, ban/unban accounts, and feature tutors
               </p>
             </div>
@@ -438,7 +439,6 @@ export function DashboardAdminUsersClient({
               </Button>
             </div>
           </div>
-
           {/* Stats Cards - Responsive Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
             <Card className="border-border/50">

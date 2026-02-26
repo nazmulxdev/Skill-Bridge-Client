@@ -1,4 +1,5 @@
 import { DashboardClientWrapper } from "@/components/Dashboard/DashboardLayout";
+import { ErrorDisplay } from "@/components/GlobalComponent/ErrorDisplay";
 import { authService } from "@/services/authService.server";
 import { Metadata } from "next";
 
@@ -24,6 +25,10 @@ export default async function DashboardLayout({
   tutor,
 }: DashboardLayoutProps) {
   const { data, error } = await authService.getSession();
+
+  if (error || !data) {
+    return <ErrorDisplay error={error} data={error} />;
+  }
   const { role, name, email } = data?.user;
   return (
     <DashboardClientWrapper

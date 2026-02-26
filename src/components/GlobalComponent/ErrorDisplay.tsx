@@ -1,6 +1,8 @@
 // components/ErrorDisplay.tsx
 "use client";
 
+import { Home, RefreshCcw } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface ErrorDetail {
@@ -28,6 +30,7 @@ interface ErrorDisplayProps {
 
 export function ErrorDisplay({ error, data }: ErrorDisplayProps) {
   const [mounted, setMounted] = useState(false);
+  const [formattedTimestamp, setFormattedTimestamp] = useState("");
   const [particles, setParticles] = useState<
     Array<{
       width: string;
@@ -38,6 +41,8 @@ export function ErrorDisplay({ error, data }: ErrorDisplayProps) {
       duration: string;
     }>
   >([]);
+
+  const router = useRouter();
 
   // Handle if error or no data
   if (!error && data) return null;
@@ -55,14 +60,17 @@ export function ErrorDisplay({ error, data }: ErrorDisplayProps) {
       duration: Math.random() * 10 + 10 + "s",
     }));
     setParticles(newParticles);
-  }, []);
+
+    // Format timestamp on client only
+    const timestamp = error?.timestamp || new Date().toISOString();
+    setFormattedTimestamp(new Date(timestamp).toLocaleString());
+  }, [error?.timestamp]);
 
   const errorMessage =
     error?.error?.message || error?.message || "Please try again later";
   const errorCode = error?.error?.code || error?.code || "UNKNOWN_ERROR";
   const statusCode = error?.error?.statusCode || error?.statusCode || 500;
   const errorDetails = error?.error?.details || [];
-  const timestamp = error?.timestamp || new Date().toISOString();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4 relative overflow-hidden">
@@ -93,7 +101,7 @@ export function ErrorDisplay({ error, data }: ErrorDisplayProps) {
         </div>
       )}
 
-      {/* Main error card - Rest of your component remains the same */}
+      {/* Main error card */}
       <div className="relative max-w-2xl w-full group">
         <div className="relative transform-gpu transition-all duration-500 group-hover:rotate-1 group-hover:scale-105">
           {/* Glowing border effect */}
@@ -194,35 +202,33 @@ export function ErrorDisplay({ error, data }: ErrorDisplayProps) {
                 </div>
               )}
 
-              {/* Timestamp */}
+              {/* Timestamp - Only render after mounted */}
               <div className="text-center mb-8">
                 <p className="text-xs text-muted-foreground">
-                  {new Date(timestamp).toLocaleString()}
+                  {mounted ? formattedTimestamp : ""}
                 </p>
               </div>
 
-              {/* Try Again button */}
-              <div className="flex justify-center">
+              {/* Action buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={() => window.location.reload()}
                   className="relative group/btn px-8 py-4 rounded-xl overflow-hidden transition-all duration-300 border border-border/20 hover:border-border/40"
                 >
                   <div className="absolute inset-0 bg-muted/5 group-hover/btn:bg-muted/10 transition-colors" />
                   <span className="relative text-foreground font-semibold flex items-center gap-2">
-                    <svg
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
+                    <RefreshCcw className="h-5 w-5" />
                     Try Again
+                  </span>
+                </button>
+                <button
+                  onClick={() => router.push("/")}
+                  className="relative group/btn px-8 py-4 rounded-xl overflow-hidden transition-all duration-300 border border-border/20 hover:border-border/40"
+                >
+                  <div className="absolute inset-0 bg-muted/5 group-hover/btn:bg-muted/10 transition-colors" />
+                  <span className="relative text-foreground font-semibold flex items-center gap-2">
+                    <Home className="h-5 w-5" />
+                    Go Home
                   </span>
                 </button>
               </div>
@@ -234,7 +240,6 @@ export function ErrorDisplay({ error, data }: ErrorDisplayProps) {
         </div>
       </div>
 
-      {/* Add custom animations to your global CSS file */}
       <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
