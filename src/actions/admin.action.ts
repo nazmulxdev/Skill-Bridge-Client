@@ -90,7 +90,7 @@ export const updateSubjectByAdmin = async (payload: {
 // delete category
 
 export const deleteSubjectByAdmin = async (subjectId: string) => {
-  const result = await adminService.deleteCategory(subjectId);
+  const result = await adminService.deleteSubject(subjectId);
   if (result.data) {
     revalidateTag("subjects", "max");
   }
