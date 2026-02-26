@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getAllPublicTutor } from "@/actions/public.action";
-import { Loader2, AlertCircle, FilterX } from "lucide-react";
+import { Loader2, AlertCircle, FilterX, GraduationCap } from "lucide-react";
 import { TutorsFilters } from "./TeachersFilter";
 import { TutorsGrid } from "./TeachersGrid";
 import { TutorsPagination } from "./TeachersPagination";
@@ -145,18 +145,23 @@ export function TutorsClient({
   ].filter(Boolean).length;
 
   return (
-    <div className="w-full min-h-screen bg-background">
+    <div className="max-w-svw min-h-screen bg-background">
       {/* Main Content - Full Width */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-7xl mx-auto mb-8">
+      <div className="w-full  px-4 sm:px-6 lg:px-12 py-8">
+        <div className="max-w-full mx-auto mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            <div className="flex-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium mb-4">
+                <GraduationCap className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span>{meta.total}+ Expert Tutors Available</span>
+              </div>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
                 Find Your Perfect Tutor
               </h1>
-              <p className="text-muted-foreground mt-2">
-                Browse through {meta.total}+ expert tutors and find the right
-                match for you
+              <p className="text-sm sm:text-base lg:text-lg text-muted-foreground mt-3 sm:mt-4 max-w-3xl">
+                Browse through our curated list of expert tutors and find the
+                perfect match for your learning journey. Filter by subject,
+                price, rating, and more.
               </p>
             </div>
 
@@ -184,8 +189,8 @@ export function TutorsClient({
           </div>
         </div>
 
-        {/* Filters - Full width with centered content */}
-        <div className="max-w-7xl mx-auto">
+        {/* Filters */}
+        <div className="max-w-full mx-auto">
           <TutorsFilters
             filters={filters}
             onFilterChange={updateFilter}
@@ -195,7 +200,7 @@ export function TutorsClient({
 
         {/* Loading State */}
         {loading && (
-          <div className="flex flex-col justify-center items-center py-16 max-w-7xl mx-auto">
+          <div className="flex flex-col justify-center items-center py-16 max-w-full mx-auto">
             <div className="relative">
               <div className="absolute inset-0 rounded-full animate-ping bg-primary/20" />
               <Loader2 className="h-12 w-12 animate-spin text-primary relative" />
@@ -221,7 +226,7 @@ export function TutorsClient({
 
         {/* Tutors Grid */}
         {!loading && !error && (
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-full mx-auto">
             <TutorsGrid tutors={tutors || []} />
           </div>
         )}

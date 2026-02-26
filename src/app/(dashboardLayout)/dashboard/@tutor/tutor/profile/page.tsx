@@ -1,6 +1,7 @@
 import { TutorBasicProfile } from "@/components/Dashboard/Tutor/TutorBasicProfile";
 import { TutorCompleteProfile } from "@/components/Dashboard/Tutor/TutorCompleteProfile";
 import { TutorSetup } from "@/components/Dashboard/Tutor/TutorProfileSetUp";
+import { ErrorDisplay } from "@/components/GlobalComponent/ErrorDisplay";
 import { tutorService } from "@/services/tutor.service.server";
 import { Metadata } from "next";
 
@@ -13,16 +14,7 @@ export default async function TutorProfile() {
 
   // Handle error
   if (error || !data) {
-    return (
-      <div className="container mx-auto py-8">
-        <div className="bg-destructive/10 text-destructive p-4 rounded-lg">
-          <h2 className="font-semibold">Error loading profile</h2>
-          <p className="text-sm">
-            {error?.message || "Please try again later"}
-          </p>
-        </div>
-      </div>
-    );
+    return <ErrorDisplay error={error} data={data} />;
   }
 
   const { role, tutorProfiles } = data;

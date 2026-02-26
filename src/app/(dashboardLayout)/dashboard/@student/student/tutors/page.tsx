@@ -1,6 +1,7 @@
 import { getAllPublicTutor } from "@/actions/public.action";
 import { getAllCategoryWithSubject } from "@/actions/tutor.action";
 import { DashboardTutorsClient } from "@/components/Dashboard/Student/DashboardTeachersClient";
+import { ErrorDisplay } from "@/components/GlobalComponent/ErrorDisplay";
 import { TutorsPageProps } from "@/types";
 
 export default async function TutorsPage({ searchParams }: TutorsPageProps) {
@@ -19,7 +20,9 @@ export default async function TutorsPage({ searchParams }: TutorsPageProps) {
   };
 
   const { data, error } = await getAllPublicTutor(params);
-  console.log(data);
+  if (error || !data) {
+    return <ErrorDisplay error={error} data={data} />;
+  }
 
   return (
     <DashboardTutorsClient

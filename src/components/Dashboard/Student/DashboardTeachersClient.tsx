@@ -149,7 +149,7 @@ export function DashboardTutorsClient({
     <div className="w-full min-h-screen bg-background">
       {/* Main Content - Full Width */}
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-7xl mx-auto mb-8">
+        <div className="max-w-full mx-auto mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
@@ -186,7 +186,7 @@ export function DashboardTutorsClient({
         </div>
 
         {/* Filters - Full width with centered content */}
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-full mx-auto">
           <TutorsFilters
             filters={filters}
             onFilterChange={updateFilter}
@@ -222,7 +222,7 @@ export function DashboardTutorsClient({
 
         {/* Tutors Grid */}
         {!loading && !error && (
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-full mx-auto">
             <DashboardTutorsGrid tutors={tutors || []} />
           </div>
         )}

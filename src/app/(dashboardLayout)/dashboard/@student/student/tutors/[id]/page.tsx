@@ -1,5 +1,6 @@
 import { getStudentProfile } from "@/actions/atudent.action";
 import { DashboardTutorCompleteProfile } from "@/components/Dashboard/Student/DashboardTutorCompleteProfile";
+import { ErrorDisplay } from "@/components/GlobalComponent/ErrorDisplay";
 
 import { publicService } from "@/services/public.service";
 import { notFound } from "next/navigation";
@@ -22,7 +23,7 @@ export default async function TutorPage({ params }: TutorPageProps) {
 
   // Handle API error
   if (error || !tutor) {
-    notFound();
+    return <ErrorDisplay error={error} data={tutor} />;
   }
 
   if (!tutor.userId || !tutor.user) {
@@ -36,7 +37,7 @@ export default async function TutorPage({ params }: TutorPageProps) {
       studentProfile = studentData.data;
     }
   } catch (error) {
-    console.log("Student not logged in or error fetching profile:", error);
+    return <ErrorDisplay error={error} data={tutor} />;
   }
 
   return (

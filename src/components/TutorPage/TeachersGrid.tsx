@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Award,
   ExternalLink,
+  ShieldBan,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -83,6 +84,11 @@ export function TutorsGrid({ tutors }: TutorsGridProps) {
                       <Badge className="absolute top-3 right-3 bg-yellow-500/90 text-white border-0 z-10">
                         <Award className="h-3 w-3 mr-1" />
                         Featured
+                      </Badge>
+                    )}
+                    {tutor.user?.status === "BANNED" && (
+                      <Badge className="absolute top-3 right-3 bg-red-500/10 text-red-600 border-red-500/20">
+                        <ShieldBan className="h-3 w-3 mr-1" /> Banned
                       </Badge>
                     )}
 

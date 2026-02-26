@@ -1,5 +1,6 @@
 import { getStudentProfile } from "@/actions/atudent.action";
 import { DashboardSessionClient } from "@/components/Dashboard/Student/DashboardSessionClient";
+import { ErrorDisplay } from "@/components/GlobalComponent/ErrorDisplay";
 import { notFound, redirect } from "next/navigation";
 
 interface SessionPageProps {
@@ -15,7 +16,7 @@ export default async function SessionPage({ params }: SessionPageProps) {
   const { data: student, error: studentError } = await getStudentProfile();
 
   if (studentError || !student) {
-    redirect("/login");
+    return <ErrorDisplay error={studentError} data={student} />;
   }
 
   if (student.role !== "STUDENT") {

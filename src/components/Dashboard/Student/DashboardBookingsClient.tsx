@@ -273,7 +273,7 @@ export function DashboardBookingClient({
   return (
     <div className="w-full min-h-screen bg-background">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-full mx-auto">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold">My Bookings</h1>

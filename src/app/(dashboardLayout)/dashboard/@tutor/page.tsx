@@ -1,13 +1,16 @@
 import { TutorRootPage } from "@/components/Dashboard/Tutor/TutorRootPage";
+import { ErrorDisplay } from "@/components/GlobalComponent/ErrorDisplay";
 import { tutorService } from "@/services/tutor.service.server";
 
 export default async function TutorPage() {
   const { data, error } = await tutorService.getTutorProfile();
 
+  // Handle error
   if (error || !data) {
-    return <div>Error loading profile</div>;
+    return <ErrorDisplay error={error} data={data} />;
   }
 
+  console.log(error);
   const { tutorProfiles } = data;
 
   return (

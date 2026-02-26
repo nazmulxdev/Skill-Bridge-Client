@@ -19,6 +19,7 @@ import {
   AlertCircle,
   CalendarDays,
   Clock3,
+  ShieldBan,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -213,7 +214,7 @@ export function TutorCompleteProfile({
   return (
     <div className="w-full min-h-screen bg-background">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-full mx-auto">
           {/* Back Button */}
           <div className="mb-6">
             <Link
@@ -259,6 +260,11 @@ export function TutorCompleteProfile({
                     {tutor.isFeatured && (
                       <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
                         <Award className="h-3 w-3 mr-1" /> Featured Tutor
+                      </Badge>
+                    )}
+                    {tutor.user?.status === "BANNED" && (
+                      <Badge className="bg-red-500/10 text-red-600 border-red-500/20">
+                        <ShieldBan className="h-3 w-3 mr-1" /> Banned
                       </Badge>
                     )}
                   </div>
@@ -641,7 +647,7 @@ export function TutorCompleteProfile({
                                 >
                                   <div className="flex items-center gap-2 w-full">
                                     <Clock3 className="h-4 w-4" />
-                                    <span className="font-medium">
+                                    <span className="text-xs break-words whitespace-normal block">
                                       {formatTime(slot.startTime)} -{" "}
                                       {formatTime(slot.endTime)}
                                     </span>
