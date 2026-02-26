@@ -1,5 +1,6 @@
 import { env } from "@/env";
 import { Status } from "@/types";
+import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
 
 export const adminService = {
@@ -61,7 +62,7 @@ export const adminService = {
           error: data.error,
         };
       }
-
+      revalidateTag("categories", "max");
       return { data: data.data, error: null };
     } catch (error) {
       console.error(error);
