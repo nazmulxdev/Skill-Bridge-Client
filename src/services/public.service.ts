@@ -66,4 +66,28 @@ export const publicService = {
       return { data: null, error: error };
     }
   },
+
+  // featured tutor
+  getAllFeaturedTutor: async function () {
+    try {
+      const res = await fetch(`${env.API_URL}/public/features`, {
+        cache: "no-store",
+        next: {
+          tags: ["featured-tutors"],
+        },
+      });
+
+      const data = await res.json();
+      console.log(data);
+
+      console.log(data);
+      if (!data.success) {
+        return { data: null, error: data.error };
+      }
+
+      return { data: data.data, error: null };
+    } catch (error) {
+      return { data: null, error: error };
+    }
+  },
 };

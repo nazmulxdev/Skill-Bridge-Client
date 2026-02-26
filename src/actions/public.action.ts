@@ -9,3 +9,7 @@ export const getAllPublicTutor = async (params: IPublicParams) => {
 export const getTutorById = async (tutorId: string) => {
   return await publicService.getTutorById(tutorId);
 };
+
+export const publicFeaturedTutor = async () => {
+  return await publicService.getAllFeaturedTutor();
+};
