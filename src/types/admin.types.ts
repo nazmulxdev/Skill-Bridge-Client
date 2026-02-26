@@ -1,4 +1,4 @@
 export enum Status {
-  BANNED,
-  UNBANNED,
+  BANNED = "BANNED",
+  UNBANNED = "UNBANNED",
 }
