@@ -123,3 +123,7 @@ export const manageTutorByAdmin = async (payload: {
   }
   return result;
 };
+
+export const allBookings = async () => {
+  return await adminService.getAllBookings();
+};
