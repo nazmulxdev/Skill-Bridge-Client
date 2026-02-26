@@ -67,13 +67,13 @@ export function HowItWorks() {
   const [activeStep, setActiveStep] = useState(1);
 
   return (
-    <section className="w-full mt-8 md:py-20 lg:py-24 bg-gradient-to-b from-background via-background to-muted/30 relative overflow-hidden">
+    <section className="w-full my-8 md:py-20 lg:py-24 bg-gradient-to-b from-background via-background to-muted/30 relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-0 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      <div className="w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-full mx-auto px-4 py-4 my-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-foreground">
