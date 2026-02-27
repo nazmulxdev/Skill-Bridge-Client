@@ -7,8 +7,9 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Profile",
+  description:
+    "Get in touch with our support team. We're here to help you with any questions about our tutoring services.",
 };
-
 export default async function TutorProfile() {
   const { data, error } = await tutorService.getTutorProfile();
 

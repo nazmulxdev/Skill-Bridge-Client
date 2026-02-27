@@ -6,11 +6,9 @@ import {
   getAllSubjectsByAdmin,
 } from "@/actions/admin.action";
 import { DashboardAdminRoot } from "@/components/Dashboard/Admin/DashboardAdminRoot";
-
 import { ErrorDisplay } from "@/components/GlobalComponent/ErrorDisplay";
 
 export default async function AdminStatsPage() {
-  // Fetch all data in parallel
   const [usersRes, bookingsRes, categoriesRes, subjectsRes] = await Promise.all(
     [
       getAllUsersByAdmin(),
@@ -20,7 +18,6 @@ export default async function AdminStatsPage() {
     ],
   );
 
-  // Check for errors in any of the responses
   if (usersRes.error || !usersRes.data) {
     return <ErrorDisplay error={usersRes.error} data={usersRes.data} />;
   }

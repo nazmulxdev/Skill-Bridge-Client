@@ -10,6 +10,11 @@ interface TutorPageProps {
   }>;
 }
 
+export const metadata = {
+  title: "Tutor Profile",
+  description: "See teacher's full details for booking slots.",
+};
+
 export default async function TutorPage({ params }: TutorPageProps) {
   const { id } = await params;
 

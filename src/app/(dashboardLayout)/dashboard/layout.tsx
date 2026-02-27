@@ -12,7 +12,7 @@ interface DashboardLayoutProps {
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Skill Bridge",
+    template: "%s | Dashboard",
     default: "Dashboard | Skill Bridge",
   },
   description: "Connect with expert tutors and enhance your skills",

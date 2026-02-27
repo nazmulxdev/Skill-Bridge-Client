@@ -45,7 +45,7 @@ interface User {
   role: "STUDENT" | "TUTOR" | "ADMIN";
   status: "BANNED" | "UNBANNED";
   createdAt: string;
-  tutorProfiles?: Array<{
+  tutorProfiles?: {
     id: string;
     isFeatured: boolean;
     hourlyRate: number;
@@ -58,7 +58,7 @@ interface User {
       rating: number;
     }>;
     bookings: Array<any>;
-  }>;
+  };
 }
 
 interface Booking {
@@ -133,12 +133,11 @@ export function DashboardAdminRoot({
     tutors: {
       total: initialUsers.filter((u) => u.role === "TUTOR").length,
       featured: initialUsers.filter(
-        (u) => u.role === "TUTOR" && u.tutorProfiles?.[0]?.isFeatured,
+        (u) => u.role === "TUTOR" && u.tutorProfiles?.isFeatured === true,
       ).length,
       withBookings: initialUsers.filter(
         (u) =>
-          u.role === "TUTOR" &&
-          (u.tutorProfiles?.[0]?.bookings?.length || 0) > 0,
+          u.role === "TUTOR" && (u.tutorProfiles?.bookings?.length || 0) > 0,
       ).length,
     },
     content: {
@@ -146,16 +145,6 @@ export function DashboardAdminRoot({
       subjects: initialSubjects.length,
     },
   };
-
-  // Calculate average rating for tutors
-  const tutorRatings = initialUsers
-    .filter((u) => u.role === "TUTOR" && u.tutorProfiles?.[0]?.reviews?.length)
-    .map((u) => {
-      const reviews = u.tutorProfiles?.[0]?.reviews || [];
-      const avg =
-        reviews.reduce((sum, r) => sum + Number(r.rating), 0) / reviews.length;
-      return avg;
-    });
 
   // Get recent users (last 10)
   const recentUsers = [...initialUsers]

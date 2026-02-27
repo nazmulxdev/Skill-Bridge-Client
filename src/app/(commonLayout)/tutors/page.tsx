@@ -3,6 +3,11 @@ import { getAllCategoryWithSubject } from "@/actions/tutor.action";
 import { TutorsClient } from "@/components/TutorPage/TeachersClient";
 import { TutorsPageProps } from "@/types";
 
+export const metadata = {
+  title: "Tutors",
+  description: "Get all tutor with their profile details.",
+};
+
 export default async function TutorsPage({ searchParams }: TutorsPageProps) {
   const { search, category, minPrice, maxPrice, rating, page } =
     await searchParams;

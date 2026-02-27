@@ -18,9 +18,16 @@ export async function proxy(request: NextRequest) {
     );
   }
 
+  if (data) {
+    if (pathname === "/dashboard") {
+      NextResponse.next();
+    }
+  }
+
   const userRole = data.user?.role;
 
   const roleBasedRoutes: { [routePath: string]: string[] } = {
+    "/dashboard": ["ADMIN", "TUTOR", "STUDENT"],
     "/dashboard/@admin": ["ADMIN"],
     "/dashboard/admin/:path*": ["ADMIN"],
     "/dashboard/@tutor": ["TUTOR"],
