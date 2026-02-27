@@ -45,7 +45,6 @@ This repository contains only the **Frontend (Client Application)**.
 - TypeScript
 - Tailwind CSS v4
 - ShadCN UI
-- Radix UI
 - Framer Motion
 - TanStack React Form
 - Better Auth

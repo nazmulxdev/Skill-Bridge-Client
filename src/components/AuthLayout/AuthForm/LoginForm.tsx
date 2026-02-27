@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/field";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Sign In",
@@ -28,6 +29,11 @@ const formData = z.object({
 });
 
 export default function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectPath = searchParams.get("redirect") || "/";
+
+  console.log(redirectPath);
   const form = useForm({
     defaultValues: {
       email: "",
@@ -40,7 +46,7 @@ export default function LoginForm() {
       const toastId = toast.loading("Creating user");
       const payload = {
         ...value,
-        callbackURL: `${env.NEXT_PUBLIC_CALLBACK_URL}`,
+        callbackURL: redirectPath,
         rememberMe: true,
       };
 
@@ -48,7 +54,6 @@ export default function LoginForm() {
 
       try {
         const { data, error } = await authClient.signIn.email(payload);
-
         if (error) {
           toast.error("User login failed...", { id: toastId });
           return;

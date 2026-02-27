@@ -1,7 +1,7 @@
 // components/Home/TopCategories.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -23,15 +23,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const categories = [
   {
     id: "math",
     name: "Mathematics",
     icon: Calculator,
-    color: "from-blue-500 to-cyan-500",
-    bgLight: "bg-blue-500/10",
-    textLight: "text-blue-600 dark:text-blue-400",
+    gradient: "from-primary to-primary/60",
+    bgLight: "bg-primary/10",
+    textLight: "text-primary",
     students: "12.5k+",
     tutors: 245,
     subjects: ["Algebra", "Calculus", "Geometry", "Statistics", "Trigonometry"],
@@ -40,9 +41,9 @@ const categories = [
     id: "science",
     name: "Science",
     icon: Beaker,
-    color: "from-green-500 to-emerald-500",
-    bgLight: "bg-green-500/10",
-    textLight: "text-green-600 dark:text-green-400",
+    gradient: "from-primary to-primary/60",
+    bgLight: "bg-primary/10",
+    textLight: "text-primary",
     students: "10.2k+",
     tutors: 189,
     subjects: [
@@ -57,9 +58,9 @@ const categories = [
     id: "programming",
     name: "Programming",
     icon: Code,
-    color: "from-purple-500 to-pink-500",
-    bgLight: "bg-purple-500/10",
-    textLight: "text-purple-600 dark:text-purple-400",
+    gradient: "from-primary to-primary/60",
+    bgLight: "bg-primary/10",
+    textLight: "text-primary",
     students: "15.8k+",
     tutors: 312,
     subjects: ["JavaScript", "Python", "Java", "Web Dev", "Data Science"],
@@ -68,9 +69,9 @@ const categories = [
     id: "languages",
     name: "Languages",
     icon: Globe,
-    color: "from-orange-500 to-red-500",
-    bgLight: "bg-orange-500/10",
-    textLight: "text-orange-600 dark:text-orange-400",
+    gradient: "from-primary to-primary/60",
+    bgLight: "bg-primary/10",
+    textLight: "text-primary",
     students: "8.9k+",
     tutors: 167,
     subjects: ["English", "Spanish", "French", "German", "Mandarin"],
@@ -79,9 +80,9 @@ const categories = [
     id: "arts",
     name: "Arts & Design",
     icon: Palette,
-    color: "from-pink-500 to-rose-500",
-    bgLight: "bg-pink-500/10",
-    textLight: "text-pink-600 dark:text-pink-400",
+    gradient: "from-primary to-primary/60",
+    bgLight: "bg-primary/10",
+    textLight: "text-primary",
     students: "6.4k+",
     tutors: 98,
     subjects: ["Drawing", "Painting", "Digital Art", "Photography", "Design"],
@@ -90,9 +91,9 @@ const categories = [
     id: "music",
     name: "Music",
     icon: Music,
-    color: "from-indigo-500 to-purple-500",
-    bgLight: "bg-indigo-500/10",
-    textLight: "text-indigo-600 dark:text-indigo-400",
+    gradient: "from-primary to-primary/60",
+    bgLight: "bg-primary/10",
+    textLight: "text-primary",
     students: "7.2k+",
     tutors: 134,
     subjects: ["Piano", "Guitar", "Violin", "Music Theory", "Vocal"],
@@ -152,7 +153,74 @@ const stats = [
 ];
 
 export function TopCategories() {
+  const [mounted, setMounted] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [tutorCounts, setTutorCounts] = useState<Record<string, number[]>>({});
+
+  useEffect(() => {
+    setMounted(true);
+
+    // Generate random tutor counts for each category's subjects
+    const counts: Record<string, number[]> = {};
+    categories.forEach((category) => {
+      counts[category.id] = category.subjects.map(
+        () => Math.floor(Math.random() * 50) + 20,
+      );
+    });
+    setTutorCounts(counts);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <section className="w-full bg-gradient-to-b from-background to-muted/30 relative overflow-hidden mb-8">
+        <div className="w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header Skeleton */}
+          <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+            <Skeleton className="h-10 w-64 mx-auto mb-4" />
+            <Skeleton className="h-6 w-96 mx-auto" />
+          </div>
+
+          {/* Stats Skeleton */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="border-border/50 bg-card/50">
+                <CardContent className="p-4 sm:p-5">
+                  <Skeleton className="h-8 w-8 rounded-full mb-2" />
+                  <Skeleton className="h-8 w-20 mb-1" />
+                  <Skeleton className="h-4 w-24" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Categories Grid Skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 mt-8">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Card key={i} className="border-border bg-card">
+                <CardContent className="p-5 sm:p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Skeleton className="w-12 h-12 rounded-lg" />
+                    <div className="flex-1">
+                      <Skeleton className="h-6 w-32 mb-2" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {[1, 2, 3, 4].map((j) => (
+                      <div key={j} className="flex justify-between py-1">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="w-full bg-gradient-to-b from-background to-muted/30 relative overflow-hidden mb-8">
@@ -165,13 +233,20 @@ export function TopCategories() {
       <div className="w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+          <Badge
+            variant="outline"
+            className="mb-4 px-3 py-1 text-xs border-border bg-muted/50 inline-flex items-center"
+          >
+            <Sparkles className="h-3 w-3 mr-1 text-primary" />
+            Explore Categories
+          </Badge>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-foreground">
             Find Your Perfect{" "}
             <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
               Learning Path
             </span>
           </h2>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-4">
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
             Browse through our extensive collection of subjects taught by expert
             tutors
           </p>
@@ -190,13 +265,13 @@ export function TopCategories() {
                 viewport={{ once: true }}
                 className="relative"
               >
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                <Card className="border-border bg-card backdrop-blur-sm">
                   <CardContent className="p-4 sm:p-5">
                     <div className="flex items-center justify-between mb-2">
                       <Icon className="h-5 w-5 text-primary" />
                       <Badge
                         variant="outline"
-                        className="bg-green-500/10 text-green-600 text-xs"
+                        className="bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 text-xs"
                       >
                         {stat.change}
                       </Badge>
@@ -229,7 +304,7 @@ export function TopCategories() {
                 viewport={{ once: true }}
                 onHoverStart={() => setActiveCategory(category.id)}
                 onHoverEnd={() => setActiveCategory(null)}
-                className="relative group outline-none focus:outline-none"
+                className="relative group outline-none focus:outline-none h-full"
               >
                 <Card
                   className={cn(
@@ -242,8 +317,7 @@ export function TopCategories() {
                   {/* Gradient Overlay */}
                   <div
                     className={cn(
-                      "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-500",
-                      category.color,
+                      "absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500",
                     )}
                   />
 
@@ -253,16 +327,10 @@ export function TopCategories() {
                       <div className="flex items-center gap-3">
                         <div
                           className={cn(
-                            "w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center",
-                            category.bgLight,
+                            "w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center bg-primary/10",
                           )}
                         >
-                          <Icon
-                            className={cn(
-                              "h-5 w-5 sm:h-6 sm:w-6",
-                              category.textLight,
-                            )}
-                          />
+                          <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                         </div>
                         <div>
                           <h3 className="font-bold text-lg sm:text-xl text-foreground">
@@ -292,7 +360,7 @@ export function TopCategories() {
                         >
                           <span className="text-foreground/80">{subject}</span>
                           <span className="text-xs text-muted-foreground">
-                            {Math.floor(Math.random() * 50) + 20}+ tutors
+                            {tutorCounts[category.id]?.[idx] || 20}+ tutors
                           </span>
                         </div>
                       ))}
@@ -342,7 +410,7 @@ export function TopCategories() {
                 transition={{ delay: index * 0.1 }}
                 viewport={{ once: true }}
               >
-                <Card className="border-border/50 hover:border-primary/30 transition-colors bg-card/50 backdrop-blur-sm">
+                <Card className="border-border hover:border-primary/30 transition-colors bg-card backdrop-blur-sm">
                   <CardContent className="p-4 sm:p-5">
                     <div className="flex items-start justify-between mb-3">
                       <div>
@@ -353,7 +421,7 @@ export function TopCategories() {
                           {subject.category}
                         </p>
                       </div>
-                      <Badge className="bg-green-500/10 text-green-600 border-0">
+                      <Badge className="bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 border-0">
                         {subject.growth}
                       </Badge>
                     </div>
@@ -394,7 +462,10 @@ export function TopCategories() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/tutors">
-                  <Button size="lg" className="gap-2 px-8">
+                  <Button
+                    size="lg"
+                    className="gap-2 px-8 bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
                     Browse All Tutors
                     <ArrowRight className="h-4 w-4" />
                   </Button>
