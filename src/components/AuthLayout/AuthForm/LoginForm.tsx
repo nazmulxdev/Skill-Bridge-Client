@@ -8,7 +8,6 @@ import { Mail, Lock, ArrowRight } from "lucide-react";
 import { AuthCard } from "@/components/AuthLayout/AuthCard";
 import z from "zod";
 import { useForm } from "@tanstack/react-form";
-import { env } from "@/env";
 import {
   Field,
   FieldError,

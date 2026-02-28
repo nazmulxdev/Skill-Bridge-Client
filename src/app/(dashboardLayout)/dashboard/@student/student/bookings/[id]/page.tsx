@@ -32,7 +32,7 @@ export default async function SessionPage({ params }: SessionPageProps) {
 
   // Only confirmed bookings can be accessed
   if (booking.status !== "CONFIRM") {
-    redirect("/student/bookings");
+    redirect("/dashboard/student/bookings");
   }
 
   return <DashboardSessionClient booking={booking} student={student} />;

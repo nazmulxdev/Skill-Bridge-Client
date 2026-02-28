@@ -11,6 +11,17 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
+  // production only
+
+  async rewrites() {
+    return [
+      {
+        source: "/api/auth/:path*",
+        destination: `https://skill-bridge-v3.vercel.app/api/auth/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

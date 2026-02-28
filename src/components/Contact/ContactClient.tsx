@@ -140,7 +140,7 @@ export function ContactClient() {
   return (
     <main className="w-full min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
       {/* Hero Section - Full Width */}
-      <section className="w-full py-20 md:py-24 lg:py-28 relative overflow-hidden">
+      <section className="w-full py-12 relative overflow-hidden">
         {/* Animated Background */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
@@ -164,7 +164,7 @@ export function ContactClient() {
       </section>
 
       {/* Contact Info Cards - Full Width */}
-      <section className="w-full pb-20 md:pb-24">
+      <section className="w-full pb-12">
         <div className="w-full max-w-full my-4 mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 my-4">
             {contactInfo.map((info, index) => {
@@ -226,7 +226,7 @@ export function ContactClient() {
       </section>
 
       {/* Contact Form & Map Section */}
-      <section className="w-full pb-20 md:pb-24 my-4">
+      <section className="w-full pb-12 my-4">
         <div className="w-full max-w-full my-4 mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Contact Form */}
@@ -466,8 +466,8 @@ export function ContactClient() {
       </section>
 
       {/* FAQ Section */}
-      <section className="w-full my-4 pb-20 md:pb-24">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="w-full my-4 pb-12">
+        <div className="w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 sm:mb-3 mt-8">
               Frequently Asked Questions
@@ -534,8 +534,8 @@ export function ContactClient() {
       </section>
 
       {/* CTA Section - Full Width */}
-      <section className="w-full pb-20 md:pb-24">
-        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 mb-8">
+      <section className="w-full pb-12">
+        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
             <CardContent className="p-6 sm:p-8 md:p-10 text-center">
               <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 sm:mb-3">

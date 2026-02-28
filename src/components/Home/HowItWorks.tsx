@@ -67,15 +67,22 @@ export function HowItWorks() {
   const [activeStep, setActiveStep] = useState(1);
 
   return (
-    <section className="w-full my-8 md:py-20 lg:py-24 bg-gradient-to-b from-background via-background to-muted/30 relative overflow-hidden">
+    <section className="w-full py-12 bg-gradient-to-b from-background via-background to-muted/30 relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-0 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      <div className="w-full max-w-full mx-auto px-4 py-4 my-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <Badge
+            variant="outline"
+            className="mb-4 px-3 py-1 text-xs border-border bg-muted/50 inline-flex items-center"
+          >
+            <Sparkles className="h-3 w-3 mr-1 text-primary" />
+            Simple Process
+          </Badge>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-foreground">
             Start Learning in{" "}
             <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
@@ -88,8 +95,8 @@ export function HowItWorks() {
           </p>
         </div>
 
-        {/* Steps Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 mb-12 md:mb-16">
+        {/* Steps Grid - REMOVED whileInView to prevent RSC fetches */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 mb-12">
           {steps.map((step, index) => {
             const Icon = step.icon;
             const isActive = activeStep === step.id;
@@ -98,9 +105,8 @@ export function HowItWorks() {
               <motion.div
                 key={step.id}
                 initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }} // Changed from whileInView to animate
                 transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
                 onHoverStart={() => setActiveStep(step.id)}
                 className="relative group h-full outline-none focus:outline-none"
               >
@@ -126,9 +132,9 @@ export function HowItWorks() {
                     )}
                   />
 
-                  <CardContent className="p-6 sm:p-8 text-center relative outline-none focus:outline-none">
+                  <CardContent className="p-6 sm:p-8 text-center relative outline-none focus:outline-none ">
                     {/* Step Number */}
-                    <div className="absolute top-3 left-3 text-3xl sm:text-4xl font-black text-muted-foreground/10">
+                    <div className="absolute top-3 left-3 text-3xl sm:text-4xl font-black text-muted-foreground">
                       {String(step.id).padStart(2, "0")}
                     </div>
 
@@ -182,16 +188,15 @@ export function HowItWorks() {
           })}
         </div>
 
-        {/* Benefits Strip */}
-        <div className="max-w-7xl mx-auto my-4">
+        {/* Benefits Strip - REMOVED whileInView */}
+        <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-6 sm:p-8 rounded-2xl bg-card border border-border/50 shadow-lg">
             {benefits.map((benefit, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
                 className="flex items-center gap-3 text-sm sm:text-base outline-none focus:outline-none"
               >
                 <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">

@@ -1,6 +1,5 @@
-import { env } from "@/env";
 import { createAuthClient } from "better-auth/client";
 
 export const authClient = createAuthClient({
-  baseURL: env.NEXT_PUBLIC_BASE_URL,
+  baseURL: "https://skill-bridge-frontend-v3.vercel.app",
 });

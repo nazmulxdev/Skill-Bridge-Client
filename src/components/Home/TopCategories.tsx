@@ -175,7 +175,7 @@ export function TopCategories() {
       <section className="w-full bg-gradient-to-b from-background to-muted/30 relative overflow-hidden mb-8">
         <div className="w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header Skeleton */}
-          <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-12">
             <Skeleton className="h-10 w-64 mx-auto mb-4" />
             <Skeleton className="h-6 w-96 mx-auto" />
           </div>
@@ -223,16 +223,16 @@ export function TopCategories() {
   }
 
   return (
-    <section className="w-full bg-gradient-to-b from-background to-muted/30 relative overflow-hidden mb-8">
+    <section className="w-full bg-gradient-to-b from-background to-muted/30 relative overflow-hidden pt-6 pb-12">
       {/* Animated Background */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-20 right-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 left-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      <div className="w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-12">
           <Badge
             variant="outline"
             className="mb-4 px-3 py-1 text-xs border-border bg-muted/50 inline-flex items-center"
@@ -252,7 +252,7 @@ export function TopCategories() {
           </p>
         </div>
 
-        {/* Live Stats Strip */}
+        {/* Live Stats Strip - REMOVED whileInView */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
@@ -260,9 +260,8 @@ export function TopCategories() {
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }} // Changed from whileInView to animate
                 transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
                 className="relative"
               >
                 <Card className="border-border bg-card backdrop-blur-sm">
@@ -289,7 +288,7 @@ export function TopCategories() {
           })}
         </div>
 
-        {/* Categories Grid */}
+        {/* Categories Grid - REMOVED whileInView */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 mt-8">
           {categories.map((category, index) => {
             const Icon = category.icon;
@@ -299,9 +298,8 @@ export function TopCategories() {
               <motion.div
                 key={category.id}
                 initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }} // Changed from whileInView to animate
                 transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
                 onHoverStart={() => setActiveCategory(category.id)}
                 onHoverEnd={() => setActiveCategory(null)}
                 className="relative group outline-none focus:outline-none h-full"
@@ -381,8 +379,8 @@ export function TopCategories() {
           })}
         </div>
 
-        {/* Popular Subjects Section */}
-        <div className="mt-16 md:mt-20">
+        {/* Popular Subjects Section - REMOVED whileInView */}
+        <div className="mt-16">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
               <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
@@ -406,9 +404,8 @@ export function TopCategories() {
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                animate={{ opacity: 1, x: 0 }} // Changed from whileInView to animate
                 transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
               >
                 <Card className="border-border hover:border-primary/30 transition-colors bg-card backdrop-blur-sm">
                   <CardContent className="p-4 sm:p-5">
@@ -450,7 +447,7 @@ export function TopCategories() {
         </div>
 
         {/* CTA Banner */}
-        <div className="mt-16 md:mt-20">
+        <div className="mt-16">
           <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
             <CardContent className="p-8 sm:p-10 text-center">
               <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
