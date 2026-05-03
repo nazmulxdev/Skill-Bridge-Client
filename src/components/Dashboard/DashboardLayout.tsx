@@ -14,22 +14,13 @@ import {
   X,
   ChevronDown,
   Star,
-  CreditCard,
-  BarChart3,
-  Shield,
-  UserCircle,
   User,
   Book,
   GraduationCapIcon,
   BookAIcon,
-  Paperclip,
   MessageSquare,
   Bell,
   HelpCircle,
-  Keyboard,
-  Sun,
-  Moon,
-  Laptop,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -150,6 +141,7 @@ export function DashboardClientWrapper({
         { name: "Reviews", href: "/dashboard/tutor/reviews", icon: Star },
       ],
       ADMIN: [
+        { name: "Profile", href: "/dashboard/admin/profile", icon: User },
         { name: "Manage Users", href: "/dashboard/admin/users", icon: Users },
         {
           name: "Manage Tutors",

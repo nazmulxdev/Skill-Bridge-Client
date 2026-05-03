@@ -1,4 +1,7 @@
+// src/components/Dashboard/Tutor/TutorCompleteProfile.tsx
 "use client";
+
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   DollarSign,
@@ -10,12 +13,20 @@ import {
   Mail,
   Award,
   Briefcase,
+  Edit,
+  Save,
+  X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
 import { TutorBookings } from "./TutorBookings";
 
 // Import your existing components
@@ -65,6 +76,12 @@ interface TimeSlotItem {
 }
 
 export function TutorCompleteProfile({ userData }: TutorProfileDetailsProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    name: userData.name || "",
+  });
+
   const { name, email, image, tutorProfiles } = userData;
 
   if (!tutorProfiles) {
@@ -97,6 +114,47 @@ export function TutorCompleteProfile({ userData }: TutorProfileDetailsProps) {
         ).toFixed(1)
       : "0.0";
 
+  const handleSaveName = async () => {
+    if (!formData.name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await authClient.updateUser({
+        name: formData.name,
+      });
+
+      toast.success("Name updated successfully");
+      setIsEditing(false);
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to update name:", error);
+      toast.error("Failed to update name. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setFormData({
+      name: userData.name || "",
+    });
+    setIsEditing(false);
+  };
+
+  // Get initials for avatar fallback
+  const getInitials = (name: string) => {
+    if (!name) return "T";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Card */}
@@ -106,50 +164,109 @@ export function TutorCompleteProfile({ userData }: TutorProfileDetailsProps) {
             <Avatar className="h-24 w-24 ring-4 ring-primary/20">
               <AvatarImage src={image || ""} />
               <AvatarFallback className="text-3xl bg-primary/10">
-                {name?.charAt(0) || "T"}
+                {getInitials(userData.name)}
               </AvatarFallback>
             </Avatar>
 
             <div className="flex-1 space-y-2">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-3xl font-bold">{name}</h1>
-                {tutorProfiles.isFeatured && (
-                  <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
-                    <Award className="h-3 w-3 mr-1" /> Featured Tutor
-                  </Badge>
-                )}
-              </div>
+              {isEditing ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tutor-name">Full Name</Label>
+                    <Input
+                      id="tutor-name"
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                      placeholder="Enter your name"
+                      className="bg-background max-w-md"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleSaveName}
+                      disabled={isSaving}
+                      size="sm"
+                      className="gap-2"
+                    >
+                      {isSaving ? (
+                        <>
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4" />
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={isSaving}
+                      size="sm"
+                      className="gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h1 className="text-3xl font-bold">{name}</h1>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsEditing(true)}
+                      className="h-8 w-8 hover:bg-primary/10"
+                      title="Edit name"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    {tutorProfiles.isFeatured && (
+                      <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+                        <Award className="h-3 w-3 mr-1" /> Featured Tutor
+                      </Badge>
+                    )}
+                  </div>
 
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Mail className="h-4 w-4" />
-                <span>{email}</span>
-              </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Mail className="h-4 w-4" />
+                    <span>{email}</span>
+                  </div>
 
-              <div className="flex items-center gap-4 flex-wrap">
-                <Badge
-                  variant="outline"
-                  className="bg-primary/10 text-primary border-primary/20"
-                >
-                  <DollarSign className="h-3 w-3 mr-1" />$
-                  {tutorProfiles.hourlyRate}/hour
-                </Badge>
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <Badge
+                      variant="outline"
+                      className="bg-primary/10 text-primary border-primary/20"
+                    >
+                      <DollarSign className="h-3 w-3 mr-1" />$
+                      {tutorProfiles.hourlyRate}/hour
+                    </Badge>
 
-                <Badge
-                  variant="outline"
-                  className="bg-success/10 text-success border-success/20"
-                >
-                  <Star className="h-3 w-3 mr-1 fill-success" />
-                  {avgRating} ({tutorProfiles.reviews?.length || 0} reviews)
-                </Badge>
+                    <Badge
+                      variant="outline"
+                      className="bg-success/10 text-success border-success/20"
+                    >
+                      <Star className="h-3 w-3 mr-1 fill-success" />
+                      {avgRating} ({tutorProfiles.reviews?.length || 0} reviews)
+                    </Badge>
 
-                <Badge
-                  variant="outline"
-                  className="bg-blue-500/10 text-blue-600 border-blue-500/20"
-                >
-                  <Briefcase className="h-3 w-3 mr-1" />
-                  Active since {new Date(tutorProfiles.createdAt).getFullYear()}
-                </Badge>
-              </div>
+                    <Badge
+                      variant="outline"
+                      className="bg-blue-500/10 text-blue-600 border-blue-500/20"
+                    >
+                      <Briefcase className="h-3 w-3 mr-1" />
+                      Active since{" "}
+                      {new Date(tutorProfiles.createdAt).getFullYear()}
+                    </Badge>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </CardContent>
