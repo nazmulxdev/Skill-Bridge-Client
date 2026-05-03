@@ -1,3 +1,4 @@
+// src/components/Dashboard/Admin/DashboardAdminUsersClient.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -14,6 +15,10 @@ import {
   RefreshCw,
   UserCog,
   Award,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -46,6 +51,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { manageUserByAdmin, manageTutorByAdmin } from "@/actions/admin.action";
@@ -97,6 +109,8 @@ const getErrorMessage = (error: any): string => {
   return "Something went wrong. Please try again.";
 };
 
+const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
+
 export function DashboardAdminUsersClient({
   initialUsers,
 }: AdminUsersClientProps) {
@@ -111,6 +125,10 @@ export function DashboardAdminUsersClient({
   const [actionLoading, setActionLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   // Filter users by search only
   const filteredUsers = initialUsers.filter((user: any) => {
     if (!searchQuery) return true;
@@ -121,6 +139,33 @@ export function DashboardAdminUsersClient({
       user.id?.toLowerCase().includes(query)
     );
   });
+
+  // Pagination calculations
+  const totalItems = filteredUsers.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  // Reset to page 1 when items per page changes
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
+
+  // Pagination handlers
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToPreviousPage = () =>
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  const goToNextPage = () =>
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  const goToLastPage = () => setCurrentPage(totalPages);
 
   // Calculate stats from database data
   const stats = {
@@ -256,6 +301,194 @@ export function DashboardAdminUsersClient({
     } finally {
       setRefreshing(false);
     }
+  };
+
+  // Pagination Component
+  const Pagination = () => {
+    if (totalItems === 0) return null;
+
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-border/50">
+        {/* Items per page selector */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Rows per page:</span>
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={handleItemsPerPageChange}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Page info */}
+        <div className="text-sm text-muted-foreground">
+          Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
+          {totalItems} users
+        </div>
+
+        {/* Page navigation */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToFirstPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          {/* Page numbers */}
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((page) => {
+                // Show first page, last page, and pages around current page
+                if (totalPages <= 7) return true;
+                if (page === 1 || page === totalPages) return true;
+                if (page >= currentPage - 1 && page <= currentPage + 1)
+                  return true;
+                return false;
+              })
+              .map((page, index, array) => {
+                // Add ellipsis
+                if (index > 0 && page - array[index - 1] > 1) {
+                  return (
+                    <div
+                      key={`ellipsis-${page}`}
+                      className="flex items-center gap-1"
+                    >
+                      <span className="text-muted-foreground px-1">...</span>
+                      <Button
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </Button>
+                    </div>
+                  );
+                }
+                return (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                );
+              })}
+          </div>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToLastPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  // Mobile Pagination Component
+  const MobilePagination = () => {
+    if (totalItems === 0) return null;
+
+    return (
+      <div className="flex flex-col gap-3 p-4 border-t border-border/50">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems}
+          </span>
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={handleItemsPerPageChange}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center justify-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToFirstPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm px-3">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToLastPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   // Mobile Card View Component
@@ -411,7 +644,6 @@ export function DashboardAdminUsersClient({
       <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <div className="max-w-full mx-auto space-y-4 sm:space-y-6">
           {/* Header */}
-
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
@@ -439,6 +671,7 @@ export function DashboardAdminUsersClient({
               </Button>
             </div>
           </div>
+
           {/* Stats Cards - Responsive Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
             <Card className="border-border/50">
@@ -507,7 +740,7 @@ export function DashboardAdminUsersClient({
                 <Input
                   placeholder="Search by name, email, or ID..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-9 w-full text-sm h-10"
                 />
               </div>
@@ -516,10 +749,13 @@ export function DashboardAdminUsersClient({
 
           {/* Responsive Display: Cards on Mobile, Table on Desktop */}
           <div className="lg:hidden">
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user: any) => (
-                <MobileUserCard key={user.id} user={user} />
-              ))
+            {paginatedUsers.length > 0 ? (
+              <>
+                {paginatedUsers.map((user: any) => (
+                  <MobileUserCard key={user.id} user={user} />
+                ))}
+                <MobilePagination />
+              </>
             ) : (
               <Card className="border-border/50">
                 <CardContent className="p-8 text-center">
@@ -536,165 +772,169 @@ export function DashboardAdminUsersClient({
               <CardHeader className="pb-2 px-6">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <UserCog className="h-5 w-5 text-primary" />
-                  All Users ({filteredUsers.length})
+                  All Users ({totalItems})
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>User</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Joined</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredUsers.map((user: any) => {
-                      const status = statusConfig[user.status as Status];
-                      const StatusIcon = status?.icon;
-                      const isTutor = user.role === "TUTOR";
-                      const isFeatured =
-                        isTutor && user.tutorProfiles?.isFeatured;
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>User</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Joined</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedUsers.map((user: any) => {
+                        const status = statusConfig[user.status as Status];
+                        const StatusIcon = status?.icon;
+                        const isTutor = user.role === "TUTOR";
+                        const isFeatured =
+                          isTutor && user.tutorProfiles?.isFeatured;
 
-                      return (
-                        <TableRow key={user.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage src={user.image || ""} />
-                                <AvatarFallback className="bg-primary/10">
-                                  {user.name?.charAt(0) || "U"}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <p className="font-medium">{user.name}</p>
-                                  {isFeatured && (
-                                    <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 text-[10px] px-1.5 py-0">
-                                      <Award className="h-2.5 w-2.5 mr-1" />
-                                      Featured
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                  {user.email}
-                                </p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                user.role === "ADMIN" &&
-                                  "bg-purple-500/10 text-purple-600 border-purple-500/20",
-                                user.role === "TUTOR" &&
-                                  "bg-green-500/10 text-green-600 border-green-500/20",
-                                user.role === "STUDENT" &&
-                                  "bg-blue-500/10 text-blue-600 border-blue-500/20",
-                              )}
-                            >
-                              {user.role}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={cn("text-xs", status?.badge)}
-                            >
-                              <StatusIcon className="h-3 w-3 mr-1" />
-                              {status?.label}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1 text-sm">
-                              <Calendar className="h-3 w-3 text-muted-foreground" />
-                              {formatDate(user.createdAt)}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                {user.status === "UNBANNED" ? (
-                                  <DropdownMenuItem
-                                    className="text-destructive"
-                                    onClick={() => {
-                                      setSelectedUser(user);
-                                      setShowBanDialog(true);
-                                    }}
-                                  >
-                                    <ShieldOff className="h-4 w-4 mr-2" />
-                                    Ban User
-                                  </DropdownMenuItem>
-                                ) : (
-                                  <DropdownMenuItem
-                                    className="text-green-600"
-                                    onClick={() => {
-                                      setSelectedUser(user);
-                                      setShowUnbanDialog(true);
-                                    }}
-                                  >
-                                    <Shield className="h-4 w-4 mr-2" />
-                                    Unban User
-                                  </DropdownMenuItem>
-                                )}
-                                {isTutor && user.tutorProfiles && (
-                                  <>
-                                    <DropdownMenuSeparator />
-                                    {isFeatured ? (
-                                      <DropdownMenuItem
-                                        className="text-yellow-600"
-                                        onClick={() => {
-                                          setSelectedTutor(user);
-                                          setShowUnfeatureDialog(true);
-                                        }}
-                                      >
-                                        <Star className="h-4 w-4 mr-2 fill-yellow-400" />
-                                        Remove Featured
-                                      </DropdownMenuItem>
-                                    ) : (
-                                      <DropdownMenuItem
-                                        className="text-yellow-600"
-                                        onClick={() => {
-                                          setSelectedTutor(user);
-                                          setShowFeatureDialog(true);
-                                        }}
-                                      >
-                                        <Star className="h-4 w-4 mr-2" />
-                                        Mark Featured
-                                      </DropdownMenuItem>
+                        return (
+                          <TableRow key={user.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={user.image || ""} />
+                                  <AvatarFallback className="bg-primary/10">
+                                    {user.name?.charAt(0) || "U"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-medium">{user.name}</p>
+                                    {isFeatured && (
+                                      <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 text-[10px] px-1.5 py-0">
+                                        <Award className="h-2.5 w-2.5 mr-1" />
+                                        Featured
+                                      </Badge>
                                     )}
-                                  </>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    {user.email}
+                                  </p>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  user.role === "ADMIN" &&
+                                    "bg-purple-500/10 text-purple-600 border-purple-500/20",
+                                  user.role === "TUTOR" &&
+                                    "bg-green-500/10 text-green-600 border-green-500/20",
+                                  user.role === "STUDENT" &&
+                                    "bg-blue-500/10 text-blue-600 border-blue-500/20",
                                 )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                              >
+                                {user.role}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className={cn("text-xs", status?.badge)}
+                              >
+                                <StatusIcon className="h-3 w-3 mr-1" />
+                                {status?.label}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1 text-sm">
+                                <Calendar className="h-3 w-3 text-muted-foreground" />
+                                {formatDate(user.createdAt)}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  {user.status === "UNBANNED" ? (
+                                    <DropdownMenuItem
+                                      className="text-destructive"
+                                      onClick={() => {
+                                        setSelectedUser(user);
+                                        setShowBanDialog(true);
+                                      }}
+                                    >
+                                      <ShieldOff className="h-4 w-4 mr-2" />
+                                      Ban User
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem
+                                      className="text-green-600"
+                                      onClick={() => {
+                                        setSelectedUser(user);
+                                        setShowUnbanDialog(true);
+                                      }}
+                                    >
+                                      <Shield className="h-4 w-4 mr-2" />
+                                      Unban User
+                                    </DropdownMenuItem>
+                                  )}
+                                  {isTutor && user.tutorProfiles && (
+                                    <>
+                                      <DropdownMenuSeparator />
+                                      {isFeatured ? (
+                                        <DropdownMenuItem
+                                          className="text-yellow-600"
+                                          onClick={() => {
+                                            setSelectedTutor(user);
+                                            setShowUnfeatureDialog(true);
+                                          }}
+                                        >
+                                          <Star className="h-4 w-4 mr-2 fill-yellow-400" />
+                                          Remove Featured
+                                        </DropdownMenuItem>
+                                      ) : (
+                                        <DropdownMenuItem
+                                          className="text-yellow-600"
+                                          onClick={() => {
+                                            setSelectedTutor(user);
+                                            setShowFeatureDialog(true);
+                                          }}
+                                        >
+                                          <Star className="h-4 w-4 mr-2" />
+                                          Mark Featured
+                                        </DropdownMenuItem>
+                                      )}
+                                    </>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
 
-                {filteredUsers.length === 0 && (
+                {paginatedUsers.length === 0 && (
                   <div className="text-center py-12">
                     <Users className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
                     <p className="text-muted-foreground">No users found</p>
                   </div>
                 )}
+
+                <Pagination />
               </CardContent>
             </Card>
           </div>
 
-          {/* All Dialogs - Responsive */}
+          {/* All Dialogs - Same as before */}
           <AlertDialog open={showBanDialog} onOpenChange={setShowBanDialog}>
             <AlertDialogContent className="w-[95vw] max-w-md mx-auto">
               <AlertDialogHeader>

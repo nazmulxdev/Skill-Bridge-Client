@@ -1,3 +1,4 @@
+// src/components/Dashboard/Student/DashboardStudentProfileClient.tsx
 "use client";
 
 import { useState } from "react";
@@ -15,14 +16,22 @@ import {
   Clock as PendingIcon,
   DollarSign,
   ChevronRight,
+  Edit,
+  Save,
+  X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
+
 interface StudentProfileClientProps {
   student: any;
 }
@@ -77,6 +86,11 @@ export function DashboardStudentProfileClient({
   student,
 }: StudentProfileClientProps) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    name: student.name || "",
+  });
 
   // Calculate statistics
   const totalBookings = student.bookings?.length || 0;
@@ -119,6 +133,47 @@ export function DashboardStudentProfileClient({
       )
       .slice(0, 5) || [];
 
+  // Get initials for avatar fallback
+  const getInitials = (name: string) => {
+    if (!name) return "S";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const handleSaveName = async () => {
+    if (!formData.name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await authClient.updateUser({
+        name: formData.name,
+      });
+
+      toast.success("Name updated successfully");
+      setIsEditing(false);
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to update name:", error);
+      toast.error("Failed to update name. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setFormData({
+      name: student.name || "",
+    });
+    setIsEditing(false);
+  };
+
   return (
     <div className="w-full min-h-screen bg-background">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
@@ -132,7 +187,7 @@ export function DashboardStudentProfileClient({
                   <Avatar className="h-24 w-24 ring-4 ring-primary/20">
                     <AvatarImage src={student.image || ""} />
                     <AvatarFallback className="text-3xl bg-primary/10">
-                      {student.name?.charAt(0) || "S"}
+                      {getInitials(student.name)}
                     </AvatarFallback>
                   </Avatar>
                   {student.status === "UNBANNED" ? (
@@ -144,51 +199,110 @@ export function DashboardStudentProfileClient({
 
                 {/* User Info */}
                 <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <h1 className="text-3xl font-bold">{student.name}</h1>
-                    <Badge
-                      variant="outline"
-                      className="bg-primary/10 text-primary"
-                    >
-                      Student
-                    </Badge>
-                    {student.status === "BANNED" && (
-                      <Badge variant="destructive">Banned</Badge>
-                    )}
-                  </div>
+                  {isEditing ? (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="student-name">Full Name</Label>
+                        <Input
+                          id="student-name"
+                          value={formData.name}
+                          onChange={(e) =>
+                            setFormData({ ...formData, name: e.target.value })
+                          }
+                          placeholder="Enter your name"
+                          className="bg-background max-w-md"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleSaveName}
+                          disabled={isSaving}
+                          size="sm"
+                          className="gap-2"
+                        >
+                          {isSaving ? (
+                            <>
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-4 w-4" />
+                              Save Changes
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={handleCancelEdit}
+                          disabled={isSaving}
+                          size="sm"
+                          className="gap-2"
+                        >
+                          <X className="h-4 w-4" />
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <h1 className="text-3xl font-bold">{student.name}</h1>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setIsEditing(true)}
+                          className="h-8 w-8 hover:bg-primary/10"
+                          title="Edit name"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Badge
+                          variant="outline"
+                          className="bg-primary/10 text-primary"
+                        >
+                          Student
+                        </Badge>
+                        {student.status === "BANNED" && (
+                          <Badge variant="destructive">Banned</Badge>
+                        )}
+                      </div>
 
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Mail className="h-4 w-4" />
-                    <span>{student.email}</span>
-                  </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Mail className="h-4 w-4" />
+                        <span>{student.email}</span>
+                      </div>
 
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>Joined {formatDate(student.createdAt)}</span>
-                  </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        <span>Joined {formatDate(student.createdAt)}</span>
+                      </div>
 
-                  <div className="flex items-center gap-4 flex-wrap mt-2">
-                    <Badge
-                      variant="outline"
-                      className="bg-primary/10 text-primary"
-                    >
-                      <BookOpen className="h-3 w-3 mr-1" />
-                      {totalBookings} Sessions
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className="bg-yellow-500/10 text-yellow-600"
-                    >
-                      <Star className="h-3 w-3 mr-1 fill-yellow-500" />
-                      {averageRating} Avg Rating
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className="bg-green-500/10 text-green-600"
-                    >
-                      <TrendingUp className="h-3 w-3 mr-1" />${totalSpent} Spent
-                    </Badge>
-                  </div>
+                      <div className="flex items-center gap-4 flex-wrap mt-2">
+                        <Badge
+                          variant="outline"
+                          className="bg-primary/10 text-primary"
+                        >
+                          <BookOpen className="h-3 w-3 mr-1" />
+                          {totalBookings} Sessions
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className="bg-yellow-500/10 text-yellow-600"
+                        >
+                          <Star className="h-3 w-3 mr-1 fill-yellow-500" />
+                          {averageRating} Avg Rating
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className="bg-green-500/10 text-green-600"
+                        >
+                          <TrendingUp className="h-3 w-3 mr-1" />${totalSpent}{" "}
+                          Spent
+                        </Badge>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </CardContent>
