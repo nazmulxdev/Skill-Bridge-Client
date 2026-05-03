@@ -12,6 +12,9 @@ import {
   User,
   Key,
   AlertCircle,
+  Sparkles,
+  Database,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,6 +27,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import { ingestAllData } from "@/actions/rag.action";
 
 interface AdminProfileClientProps {
   admin: {
@@ -53,6 +57,7 @@ export function DashboardAdminProfileClient({
   const [activeTab, setActiveTab] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isIndexing, setIsIndexing] = useState(false);
   const [formData, setFormData] = useState({
     name: admin.name || "",
   });
@@ -65,15 +70,12 @@ export function DashboardAdminProfileClient({
 
     setIsSaving(true);
     try {
-      // Use Better Auth client to update user
       await authClient.updateUser({
         name: formData.name,
       });
 
       toast.success("Profile updated successfully");
       setIsEditing(false);
-
-      // Refresh the page to get updated session data
       window.location.reload();
     } catch (error) {
       console.error("Failed to update profile:", error);
@@ -88,6 +90,29 @@ export function DashboardAdminProfileClient({
       name: admin.name || "",
     });
     setIsEditing(false);
+  };
+
+  // AI Indexing handler
+  const handleIndexing = async () => {
+    setIsIndexing(true);
+    const toastId = toast.loading("Indexing data for AI...");
+
+    try {
+      const { data, error } = await ingestAllData();
+
+      if (error || !data) {
+        toast.error("Failed to index data", { id: toastId });
+      } else {
+        toast.success(`AI data indexed successfully!`, {
+          id: toastId,
+          description: `Tutors: ${data.tutors}, Subjects: ${data.subjects}, FAQs: ${data.faqs}, Total: ${data.total} documents`,
+        });
+      }
+    } catch {
+      toast.error("Indexing failed", { id: toastId });
+    } finally {
+      setIsIndexing(false);
+    }
   };
 
   // Get initials for avatar fallback
@@ -105,6 +130,46 @@ export function DashboardAdminProfileClient({
     <div className="w-full min-h-screen bg-background">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-full mx-auto space-y-6">
+          {/* AI Indexing Card */}
+          <Card className="border-border/50 bg-gradient-to-r from-primary/5 via-transparent to-transparent">
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Database className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">
+                      AI Knowledge Base Indexing
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Index all tutors, subjects & FAQs for the AI chat
+                      assistant. Run this after adding new data.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={handleIndexing}
+                  disabled={isIndexing}
+                  className="gap-2 shrink-0"
+                >
+                  {isIndexing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Indexing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Index Data Now
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Profile Header Card */}
           <Card className="border-border/50 bg-gradient-to-r from-primary/5 via-transparent to-transparent overflow-hidden">
             <CardContent className="p-6">

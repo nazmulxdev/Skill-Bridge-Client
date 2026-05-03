@@ -1,11 +1,19 @@
+// src/app/(authLayout)/signup/page.tsx
 "use client";
-import { Metadata } from "next";
-import Link from "next/link";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Lock, User, Sparkles, ArrowRight } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User,
+  Sparkles,
+  ArrowRight,
+  ClipboardCheck,
+} from "lucide-react";
 import { AuthCard } from "@/components/AuthLayout/AuthCard";
+import { Separator } from "@/components/ui/separator";
 import z from "zod";
 import { useForm } from "@tanstack/react-form";
 import {
@@ -17,6 +25,22 @@ import {
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+
+// Demo credentials for quick testing (auto-fill)
+const DEMO_CREDENTIALS = {
+  student: {
+    name: "Demo Student",
+    email: "demo@skill-bridge.com",
+    password: "12345678",
+    role: "STUDENT" as const,
+  },
+  tutor: {
+    name: "Demo Tutor",
+    email: "demo-tutor@skill-bridge.com",
+    password: "12345678",
+    role: "TUTOR" as const,
+  },
+};
 
 const formData = z
   .object({
@@ -33,10 +57,6 @@ const formData = z
     path: ["confirmPassword"],
   });
 
-export const metadata: Metadata = {
-  title: "Create Account | Skill Bridge",
-};
-
 export default function SignupForm() {
   const router = useRouter();
   const form = useForm({
@@ -51,7 +71,7 @@ export default function SignupForm() {
       onSubmit: formData,
     },
     onSubmit: async ({ value }) => {
-      const toastId = toast.loading("Register user");
+      const toastId = toast.loading("Creating account...");
       const payload = {
         ...value,
         rememberMe: true,
@@ -59,11 +79,11 @@ export default function SignupForm() {
       try {
         const { data, error } = await authClient.signUp.email(payload);
         if (error) {
-          toast.error(error.message, { id: toastId });
+          toast.error(error.message || "Registration failed", { id: toastId });
           return;
         }
         if (data) {
-          toast.success(`${payload.role} registration successfully`, {
+          toast.success(`${payload.role} registration successfully!`, {
             id: toastId,
           });
           setTimeout(() => {
@@ -72,10 +92,24 @@ export default function SignupForm() {
         }
       } catch (error: any) {
         console.error(error);
-        toast.error(error.message, { id: toastId });
+        toast.error(error.message || "Registration failed", { id: toastId });
       }
     },
   });
+
+  // Auto-fill demo credentials
+  const fillDemoCredentials = (type: "student" | "tutor") => {
+    const demo = DEMO_CREDENTIALS[type];
+    form.setFieldValue("name", demo.name);
+    form.setFieldValue("email", demo.email);
+    form.setFieldValue("password", demo.password);
+    form.setFieldValue("confirmPassword", demo.password);
+    form.setFieldValue("role", demo.role);
+    toast.success(`Demo ${type} credentials filled!`, {
+      description: "You can now submit the form or modify the fields.",
+    });
+  };
+
   return (
     <AuthCard
       title="Create your account"
@@ -120,6 +154,7 @@ export default function SignupForm() {
               );
             }}
           />
+
           {/* email */}
           <form.Field
             name="email"
@@ -229,7 +264,6 @@ export default function SignupForm() {
           />
 
           {/* password */}
-
           <form.Field
             name="password"
             children={(field) => {
@@ -259,8 +293,8 @@ export default function SignupForm() {
               );
             }}
           />
-          {/*confirm  password */}
 
+          {/* confirm password */}
           <form.Field
             name="confirmPassword"
             children={(field) => {
@@ -291,6 +325,7 @@ export default function SignupForm() {
             }}
           />
         </FieldGroup>
+
         <Button
           type="submit"
           form="signup-form"
@@ -300,6 +335,64 @@ export default function SignupForm() {
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </form>
+
+      {/* Demo Credentials Section */}
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <Separator className="w-full" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-card px-4 text-xs text-muted-foreground font-medium uppercase tracking-wider">
+            Quick Demo Fill
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3">
+        {/* Fill Demo Student Button */}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => fillDemoCredentials("student")}
+          className="w-full h-12 relative group overflow-hidden border-primary/20 hover:border-primary/50 bg-primary/5 hover:bg-primary/10 transition-all duration-300"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative flex items-center justify-center gap-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 group-hover:bg-primary/30 transition-colors">
+              <ClipboardCheck className="h-4 w-4 text-primary" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-semibold">Fill as Demo Student</p>
+              <p className="text-xs text-muted-foreground">
+                Auto-fill student credentials
+              </p>
+            </div>
+            <Sparkles className="h-4 w-4 text-yellow-500 group-hover:animate-pulse" />
+          </div>
+        </Button>
+
+        {/* Fill Demo Tutor Button */}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => fillDemoCredentials("tutor")}
+          className="w-full h-12 relative group overflow-hidden border-green-500/20 hover:border-green-500/50 bg-green-500/5 hover:bg-green-500/10 transition-all duration-300"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-transparent to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative flex items-center justify-center gap-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500/20 group-hover:bg-green-500/30 transition-colors">
+              <ClipboardCheck className="h-4 w-4 text-green-500" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-semibold">Fill as Demo Tutor</p>
+              <p className="text-xs text-muted-foreground">
+                Auto-fill tutor credentials
+              </p>
+            </div>
+            <Sparkles className="h-4 w-4 text-green-400 group-hover:animate-pulse" />
+          </div>
+        </Button>
+      </div>
 
       {/* Sign In Link */}
       <p className="text-center text-sm text-muted-foreground mt-6">
