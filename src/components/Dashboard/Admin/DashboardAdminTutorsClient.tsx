@@ -1,3 +1,4 @@
+// src/components/Dashboard/Admin/DashboardAdminTutorsClient.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -19,6 +20,10 @@ import {
   AlertCircle,
   HelpCircle,
   BanknoteX,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -130,6 +135,8 @@ const getErrorMessage = (error: any): string => {
   return "Something went wrong. Please try again.";
 };
 
+const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
+
 export function DashboardAdminTutorsClient({
   initialTutors,
 }: AdminTutorsClientProps) {
@@ -144,6 +151,10 @@ export function DashboardAdminTutorsClient({
   const [showUnfeatureDialog, setShowUnfeatureDialog] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Filter and sort tutors
   const filteredTutors = initialTutors
@@ -227,6 +238,59 @@ export function DashboardAdminTutorsClient({
       return 0;
     });
 
+  // Pagination calculations
+  const totalItems = filteredTutors.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedTutors = filteredTutors.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleFilterChange = (filter: string, value: string) => {
+    switch (filter) {
+      case "status":
+        setStatusFilter(value);
+        break;
+      case "featured":
+        setFeaturedFilter(value);
+        break;
+      case "profile":
+        setProfileFilter(value);
+        break;
+      case "sort":
+        setSortBy(value);
+        break;
+    }
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setFeaturedFilter("all");
+    setProfileFilter("all");
+    setSortBy("newest");
+    setCurrentPage(1);
+  };
+
+  // Pagination handlers
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToPreviousPage = () =>
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  const goToNextPage = () =>
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  const goToLastPage = () => setCurrentPage(totalPages);
+
   // Calculate stats
   const stats = {
     total: initialTutors.length,
@@ -309,6 +373,192 @@ export function DashboardAdminTutorsClient({
     } finally {
       setRefreshing(false);
     }
+  };
+
+  // Desktop Pagination Component
+  const DesktopPagination = () => {
+    if (totalItems === 0) return null;
+
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-border/50">
+        {/* Items per page selector */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Rows per page:</span>
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={handleItemsPerPageChange}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Page info */}
+        <div className="text-sm text-muted-foreground">
+          Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
+          {totalItems} tutors
+        </div>
+
+        {/* Page navigation */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToFirstPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          {/* Page numbers */}
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((page) => {
+                if (totalPages <= 7) return true;
+                if (page === 1 || page === totalPages) return true;
+                if (page >= currentPage - 1 && page <= currentPage + 1)
+                  return true;
+                return false;
+              })
+              .map((page, index, array) => {
+                if (index > 0 && page - array[index - 1] > 1) {
+                  return (
+                    <div
+                      key={`ellipsis-${page}`}
+                      className="flex items-center gap-1"
+                    >
+                      <span className="text-muted-foreground px-1">...</span>
+                      <Button
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </Button>
+                    </div>
+                  );
+                }
+                return (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                );
+              })}
+          </div>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToLastPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  // Mobile Pagination Component
+  const MobilePagination = () => {
+    if (totalItems === 0) return null;
+
+    return (
+      <div className="flex flex-col gap-3 p-4 border-t border-border/50">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems}
+          </span>
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={handleItemsPerPageChange}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center justify-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToFirstPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm px-3">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToLastPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   // Mobile Card View
@@ -642,7 +892,7 @@ export function DashboardAdminTutorsClient({
               </Card>
             </div>
 
-            {/* Filters Section - Added profile filter */}
+            {/* Filters Section */}
             <Card className="border-border/50">
               <CardContent className="p-3 sm:p-4 space-y-3">
                 {/* Search */}
@@ -651,14 +901,19 @@ export function DashboardAdminTutorsClient({
                   <Input
                     placeholder="Search tutors by name, email, or subject..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     className="pl-9 w-full text-sm h-10"
                   />
                 </div>
 
                 {/* Filter Row */}
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={(value) =>
+                      handleFilterChange("status", value)
+                    }
+                  >
                     <SelectTrigger className="h-9 text-xs sm:text-sm">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
@@ -671,7 +926,9 @@ export function DashboardAdminTutorsClient({
 
                   <Select
                     value={featuredFilter}
-                    onValueChange={setFeaturedFilter}
+                    onValueChange={(value) =>
+                      handleFilterChange("featured", value)
+                    }
                   >
                     <SelectTrigger className="h-9 text-xs sm:text-sm">
                       <SelectValue placeholder="Featured" />
@@ -685,7 +942,9 @@ export function DashboardAdminTutorsClient({
 
                   <Select
                     value={profileFilter}
-                    onValueChange={setProfileFilter}
+                    onValueChange={(value) =>
+                      handleFilterChange("profile", value)
+                    }
                   >
                     <SelectTrigger className="h-9 text-xs sm:text-sm">
                       <SelectValue placeholder="Profile" />
@@ -698,7 +957,10 @@ export function DashboardAdminTutorsClient({
                     </SelectContent>
                   </Select>
 
-                  <Select value={sortBy} onValueChange={setSortBy}>
+                  <Select
+                    value={sortBy}
+                    onValueChange={(value) => handleFilterChange("sort", value)}
+                  >
                     <SelectTrigger className="h-9 text-xs sm:text-sm col-span-2 sm:col-span-2">
                       <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
@@ -732,7 +994,7 @@ export function DashboardAdminTutorsClient({
               <p className="text-muted-foreground">
                 Showing{" "}
                 <span className="font-medium text-foreground">
-                  {filteredTutors.length}
+                  {totalItems}
                 </span>{" "}
                 of{" "}
                 <span className="font-medium text-foreground">
@@ -747,13 +1009,7 @@ export function DashboardAdminTutorsClient({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setStatusFilter("all");
-                    setFeaturedFilter("all");
-                    setProfileFilter("all");
-                    setSortBy("newest");
-                  }}
+                  onClick={handleClearFilters}
                   className="h-8 text-xs"
                 >
                   Clear Filters
@@ -763,10 +1019,13 @@ export function DashboardAdminTutorsClient({
 
             {/* Mobile Cards View */}
             <div className="lg:hidden">
-              {filteredTutors.length > 0 ? (
-                filteredTutors.map((tutor: any) => (
-                  <MobileTutorCard key={tutor.id} tutor={tutor} />
-                ))
+              {paginatedTutors.length > 0 ? (
+                <>
+                  {paginatedTutors.map((tutor: any) => (
+                    <MobileTutorCard key={tutor.id} tutor={tutor} />
+                  ))}
+                  <MobilePagination />
+                </>
               ) : (
                 <Card className="border-border/50">
                   <CardContent className="p-8 text-center">
@@ -777,13 +1036,13 @@ export function DashboardAdminTutorsClient({
               )}
             </div>
 
-            {/* Desktop Table View - Added Profile Status Column */}
+            {/* Desktop Table View */}
             <div className="hidden lg:block">
               <Card className="border-border/50">
                 <CardHeader className="pb-2 px-6">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Users className="h-5 w-5 text-primary" />
-                    All Tutors ({filteredTutors.length})
+                    All Tutors ({totalItems})
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -815,7 +1074,7 @@ export function DashboardAdminTutorsClient({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/50">
-                        {filteredTutors.map((tutor: any) => {
+                        {paginatedTutors.map((tutor: any) => {
                           const avgRating = getAverageRating(
                             tutor.tutorProfiles?.reviews || [],
                           );
@@ -1015,11 +1274,13 @@ export function DashboardAdminTutorsClient({
                     </table>
                   </div>
 
-                  {filteredTutors.length === 0 && (
+                  {paginatedTutors.length === 0 ? (
                     <div className="text-center py-12">
                       <Users className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
                       <p className="text-muted-foreground">No tutors found</p>
                     </div>
+                  ) : (
+                    <DesktopPagination />
                   )}
                 </CardContent>
               </Card>

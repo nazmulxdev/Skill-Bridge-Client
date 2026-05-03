@@ -1,3 +1,4 @@
+// src/components/Dashboard/Admin/DashboardAdminCategoriesClient.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -14,6 +15,10 @@ import {
   Calendar,
   MoreVertical,
   AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +52,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -94,6 +106,8 @@ const getErrorMessage = (error: any): string => {
   return "Something went wrong. Please try again.";
 };
 
+const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
+
 export function DashboardAdminCategoriesClient({
   initialCategories,
 }: AdminCategoriesClientProps) {
@@ -113,6 +127,10 @@ export function DashboardAdminCategoriesClient({
     description: "",
   });
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   const filteredCategories = initialCategories.filter((cat: any) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
@@ -121,6 +139,32 @@ export function DashboardAdminCategoriesClient({
       cat.description?.toLowerCase().includes(query)
     );
   });
+
+  // Pagination calculations
+  const totalItems = filteredCategories.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCategories = filteredCategories.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
+
+  // Pagination handlers
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToPreviousPage = () =>
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  const goToNextPage = () =>
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  const goToLastPage = () => setCurrentPage(totalPages);
 
   // Calculate stats - using initialCategories directly
   const stats = {
@@ -235,6 +279,188 @@ export function DashboardAdminCategoriesClient({
   const openDeleteDialog = (category: any) => {
     setSelectedCategory(category);
     setIsDeleteDialogOpen(true);
+  };
+
+  // Desktop Pagination Component
+  const DesktopPagination = () => {
+    if (totalItems === 0) return null;
+
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-border/50">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Rows per page:</span>
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={handleItemsPerPageChange}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="text-sm text-muted-foreground">
+          Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
+          {totalItems} categories
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToFirstPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((page) => {
+                if (totalPages <= 7) return true;
+                if (page === 1 || page === totalPages) return true;
+                if (page >= currentPage - 1 && page <= currentPage + 1)
+                  return true;
+                return false;
+              })
+              .map((page, index, array) => {
+                if (index > 0 && page - array[index - 1] > 1) {
+                  return (
+                    <div
+                      key={`ellipsis-${page}`}
+                      className="flex items-center gap-1"
+                    >
+                      <span className="text-muted-foreground px-1">...</span>
+                      <Button
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </Button>
+                    </div>
+                  );
+                }
+                return (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                );
+              })}
+          </div>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToLastPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  // Mobile Pagination Component
+  const MobilePagination = () => {
+    if (totalItems === 0) return null;
+
+    return (
+      <div className="flex flex-col gap-3 p-4 border-t border-border/50">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems}
+          </span>
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={handleItemsPerPageChange}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center justify-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToFirstPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm px-3">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToLastPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   // Mobile Card View
@@ -431,7 +657,7 @@ export function DashboardAdminCategoriesClient({
                 <Input
                   placeholder="Search categories by name or description..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-9 w-full text-sm h-10"
                 />
               </div>
@@ -442,9 +668,7 @@ export function DashboardAdminCategoriesClient({
           <div className="flex items-center justify-between text-sm">
             <p className="text-muted-foreground">
               Showing{" "}
-              <span className="font-medium text-foreground">
-                {filteredCategories.length}
-              </span>{" "}
+              <span className="font-medium text-foreground">{totalItems}</span>{" "}
               of{" "}
               <span className="font-medium text-foreground">{stats.total}</span>{" "}
               categories
@@ -453,12 +677,15 @@ export function DashboardAdminCategoriesClient({
 
           {/* Mobile Cards View (0-1024px) */}
           <div className="block lg:hidden">
-            {filteredCategories.length > 0 ? (
-              <div className="space-y-3">
-                {filteredCategories.map((category: any) => (
-                  <MobileCategoryCard key={category.id} category={category} />
-                ))}
-              </div>
+            {paginatedCategories.length > 0 ? (
+              <>
+                <div className="space-y-3">
+                  {paginatedCategories.map((category: any) => (
+                    <MobileCategoryCard key={category.id} category={category} />
+                  ))}
+                </div>
+                <MobilePagination />
+              </>
             ) : (
               <Card className="border-border/50">
                 <CardContent className="p-8 text-center">
@@ -475,7 +702,7 @@ export function DashboardAdminCategoriesClient({
               <CardHeader className="pb-2 px-4 md:px-6">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <FolderTree className="h-5 w-5 text-primary" />
-                  All Categories ({filteredCategories.length})
+                  All Categories ({totalItems})
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
@@ -495,7 +722,7 @@ export function DashboardAdminCategoriesClient({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredCategories.map((category: any) => (
+                      {paginatedCategories.map((category: any) => (
                         <TableRow
                           key={category.id}
                           className="hover:bg-muted/30"
@@ -581,11 +808,13 @@ export function DashboardAdminCategoriesClient({
                   </Table>
                 </div>
 
-                {filteredCategories.length === 0 && (
+                {paginatedCategories.length === 0 ? (
                   <div className="text-center py-12">
                     <FolderTree className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
                     <p className="text-muted-foreground">No categories found</p>
                   </div>
+                ) : (
+                  <DesktopPagination />
                 )}
               </CardContent>
             </Card>

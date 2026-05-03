@@ -1,3 +1,4 @@
+// src/components/Dashboard/Admin/DashboardAdminSubjectsClient.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -14,6 +15,10 @@ import {
   MoreVertical,
   FolderTree,
   CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -102,6 +107,8 @@ const getErrorMessage = (error: any): string => {
   return "Something went wrong. Please try again.";
 };
 
+const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
+
 export function DashboardAdminSubjectsClient({
   initialSubjects,
   initialCategories,
@@ -118,6 +125,10 @@ export function DashboardAdminSubjectsClient({
 
   const [newSubject, setNewSubject] = useState({ category_id: "", name: "" });
   const [editSubject, setEditSubject] = useState({ category_id: "", name: "" });
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const filteredSubjects = initialSubjects.filter((subject: any) => {
     // Search filter
@@ -139,6 +150,43 @@ export function DashboardAdminSubjectsClient({
 
     return true;
   });
+
+  // Pagination calculations
+  const totalItems = filteredSubjects.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedSubjects = filteredSubjects.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleCategoryFilterChange = (value: string) => {
+    setCategoryFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setCategoryFilter("all");
+    setCurrentPage(1);
+  };
+
+  // Pagination handlers
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToPreviousPage = () =>
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  const goToNextPage = () =>
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  const goToLastPage = () => setCurrentPage(totalPages);
 
   // Calculate stats
   const stats = {
@@ -165,7 +213,7 @@ export function DashboardAdminSubjectsClient({
 
     try {
       const { data, error } = await addSubjectByAdmin({
-        categoryId: newSubject.category_id, // API expects camelCase
+        categoryId: newSubject.category_id,
         name: newSubject.name,
       });
 
@@ -263,6 +311,188 @@ export function DashboardAdminSubjectsClient({
   const getCategoryName = (categoryId: string) => {
     const category = initialCategories.find((c: any) => c.id === categoryId);
     return category?.name || "Unknown Category";
+  };
+
+  // Desktop Pagination Component
+  const DesktopPagination = () => {
+    if (totalItems === 0) return null;
+
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-border/50">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Rows per page:</span>
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={handleItemsPerPageChange}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="text-sm text-muted-foreground">
+          Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
+          {totalItems} subjects
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToFirstPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((page) => {
+                if (totalPages <= 7) return true;
+                if (page === 1 || page === totalPages) return true;
+                if (page >= currentPage - 1 && page <= currentPage + 1)
+                  return true;
+                return false;
+              })
+              .map((page, index, array) => {
+                if (index > 0 && page - array[index - 1] > 1) {
+                  return (
+                    <div
+                      key={`ellipsis-${page}`}
+                      className="flex items-center gap-1"
+                    >
+                      <span className="text-muted-foreground px-1">...</span>
+                      <Button
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </Button>
+                    </div>
+                  );
+                }
+                return (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                );
+              })}
+          </div>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToLastPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  // Mobile Pagination Component
+  const MobilePagination = () => {
+    if (totalItems === 0) return null;
+
+    return (
+      <div className="flex flex-col gap-3 p-4 border-t border-border/50">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems}
+          </span>
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={handleItemsPerPageChange}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center justify-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToFirstPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm px-3">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToLastPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   // Mobile Card View
@@ -439,7 +669,7 @@ export function DashboardAdminSubjectsClient({
                   <Input
                     placeholder="Search subjects by name or category..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     className="pl-9 w-full text-sm h-10"
                   />
                 </div>
@@ -447,7 +677,7 @@ export function DashboardAdminSubjectsClient({
                 {/* Category Filter */}
                 <Select
                   value={categoryFilter}
-                  onValueChange={setCategoryFilter}
+                  onValueChange={handleCategoryFilterChange}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Filter by category" />
@@ -469,7 +699,7 @@ export function DashboardAdminSubjectsClient({
               <p className="text-muted-foreground">
                 Showing{" "}
                 <span className="font-medium text-foreground">
-                  {filteredSubjects.length}
+                  {totalItems}
                 </span>{" "}
                 of{" "}
                 <span className="font-medium text-foreground">
@@ -481,10 +711,7 @@ export function DashboardAdminSubjectsClient({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setCategoryFilter("all");
-                  }}
+                  onClick={handleClearFilters}
                   className="h-8 text-xs"
                 >
                   Clear Filters
@@ -494,12 +721,15 @@ export function DashboardAdminSubjectsClient({
 
             {/* Mobile Cards View */}
             <div className="block lg:hidden">
-              {filteredSubjects.length > 0 ? (
-                <div className="space-y-3">
-                  {filteredSubjects.map((subject: any) => (
-                    <MobileSubjectCard key={subject.id} subject={subject} />
-                  ))}
-                </div>
+              {paginatedSubjects.length > 0 ? (
+                <>
+                  <div className="space-y-3">
+                    {paginatedSubjects.map((subject: any) => (
+                      <MobileSubjectCard key={subject.id} subject={subject} />
+                    ))}
+                  </div>
+                  <MobilePagination />
+                </>
               ) : (
                 <Card className="border-border/50">
                   <CardContent className="p-8 text-center">
@@ -516,7 +746,7 @@ export function DashboardAdminSubjectsClient({
                 <CardHeader className="pb-2 px-4 md:px-6">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <BookOpen className="h-5 w-5 text-primary" />
-                    All Subjects ({filteredSubjects.length})
+                    All Subjects ({totalItems})
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0 overflow-x-auto">
@@ -535,7 +765,7 @@ export function DashboardAdminSubjectsClient({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {filteredSubjects.map((subject: any) => {
+                        {paginatedSubjects.map((subject: any) => {
                           const categoryName = getCategoryName(
                             subject.category_id,
                           );
@@ -612,11 +842,13 @@ export function DashboardAdminSubjectsClient({
                     </Table>
                   </div>
 
-                  {filteredSubjects.length === 0 && (
+                  {paginatedSubjects.length === 0 ? (
                     <div className="text-center py-12">
                       <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
                       <p className="text-muted-foreground">No subjects found</p>
                     </div>
+                  ) : (
+                    <DesktopPagination />
                   )}
                 </CardContent>
               </Card>
