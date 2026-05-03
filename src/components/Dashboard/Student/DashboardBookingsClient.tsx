@@ -1,3 +1,4 @@
+// src/components/Dashboard/Student/DashboardBookingClient.tsx
 "use client";
 
 import { useState } from "react";
@@ -16,6 +17,10 @@ import {
   Loader2,
   Video,
   CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -90,7 +95,7 @@ const statusConfig = {
     color: "text-blue-600 bg-blue-500/10 border-blue-500/20",
     badge: "bg-blue-500/10 text-blue-600 border-blue-500/20",
     description: "Session completed",
-    actions: [], // No actions for completed sessions
+    actions: [],
   },
 };
 
@@ -130,6 +135,8 @@ const getErrorMessage = (error: any): string => {
   return "Something went wrong. Please try again.";
 };
 
+const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
+
 export function DashboardBookingClient({
   student,
 }: StudentBookingsClientProps) {
@@ -142,6 +149,10 @@ export function DashboardBookingClient({
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const bookings = student?.bookings || [];
 
@@ -201,6 +212,37 @@ export function DashboardBookingClient({
     return 0;
   });
 
+  // Pagination calculations
+  const totalItems = sortedBookings.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedBookings = sortedBookings.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filter or sort changes
+  const handleFilterChange = (value: string) => {
+    setFilterStatus(value);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
+
+  // Pagination handlers
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToPreviousPage = () =>
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  const goToNextPage = () =>
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  const goToLastPage = () => setCurrentPage(totalPages);
+
   const handleCancelBooking = async (bookingId: string) => {
     setCancellingId(bookingId);
     const toastId = toast.loading("Cancelling booking...");
@@ -223,9 +265,8 @@ export function DashboardBookingClient({
   };
 
   const handleJoinSession = (booking: any) => {
-    const toastId = toast.loading("Cancelling booking...");
     router.push(`/dashboard/student/bookings/${booking.id}`);
-    toast.success("Session joined successfully!", { id: toastId });
+    toast.success("Joining session...");
   };
 
   const handleOpenReview = (booking: any) => {
@@ -259,8 +300,6 @@ export function DashboardBookingClient({
       toast.success("Review submitted successfully!", { id: toastId });
       setReviewDialogOpen(false);
       setSelectedBooking(null);
-
-      // Refresh to get updated data
       router.refresh();
     } catch (err) {
       const errorMessage = getErrorMessage(err);
@@ -268,6 +307,121 @@ export function DashboardBookingClient({
     } finally {
       setSubmittingReview(false);
     }
+  };
+
+  // Pagination Component
+  const Pagination = () => {
+    if (totalItems === 0) return null;
+
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border/50">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Rows per page:</span>
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={handleItemsPerPageChange}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="text-sm text-muted-foreground">
+          Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
+          {totalItems} bookings
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToFirstPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((page) => {
+                if (totalPages <= 7) return true;
+                if (page === 1 || page === totalPages) return true;
+                if (page >= currentPage - 1 && page <= currentPage + 1)
+                  return true;
+                return false;
+              })
+              .map((page, index, array) => {
+                if (index > 0 && page - array[index - 1] > 1) {
+                  return (
+                    <div
+                      key={`ellipsis-${page}`}
+                      className="flex items-center gap-1"
+                    >
+                      <span className="text-muted-foreground px-1">...</span>
+                      <Button
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </Button>
+                    </div>
+                  );
+                }
+                return (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                );
+              })}
+          </div>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToLastPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -329,7 +483,7 @@ export function DashboardBookingClient({
             <Tabs
               defaultValue="all"
               className="w-full sm:w-auto"
-              onValueChange={setFilterStatus}
+              onValueChange={handleFilterChange}
             >
               <TabsList className="grid grid-cols-5 w-full sm:w-auto">
                 <TabsTrigger value="all" className="text-xs sm:text-sm">
@@ -350,7 +504,7 @@ export function DashboardBookingClient({
               </TabsList>
             </Tabs>
 
-            <Select value={sortBy} onValueChange={setSortBy}>
+            <Select value={sortBy} onValueChange={handleSortChange}>
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
@@ -366,7 +520,7 @@ export function DashboardBookingClient({
 
           {/* Bookings List */}
           <div className="space-y-4">
-            {sortedBookings.map((booking: any) => {
+            {paginatedBookings.map((booking: any) => {
               const status =
                 statusConfig[booking.status as keyof typeof statusConfig];
               const StatusIcon = status?.icon || AlertCircle;
@@ -374,7 +528,6 @@ export function DashboardBookingClient({
               const canCancel =
                 booking.status === "PENDING" || booking.status === "CONFIRM";
               const canJoin = booking.status === "CONFIRM";
-
               const canReview =
                 booking.status === "COMPLETE" && !booking.review;
 
@@ -575,7 +728,7 @@ export function DashboardBookingClient({
               );
             })}
 
-            {sortedBookings.length === 0 && (
+            {paginatedBookings.length === 0 && (
               <Card className="border-border/50 bg-card/50">
                 <CardContent className="p-12 text-center">
                   <Filter className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
@@ -586,6 +739,9 @@ export function DashboardBookingClient({
               </Card>
             )}
           </div>
+
+          {/* Pagination */}
+          <Pagination />
         </div>
       </div>
 

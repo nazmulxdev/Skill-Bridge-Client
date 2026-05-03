@@ -1,3 +1,4 @@
+// src/components/Dashboard/Tutor/TutorBookings.tsx
 "use client";
 
 import { useState } from "react";
@@ -13,6 +14,10 @@ import {
   Filter,
   Star,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -78,10 +83,16 @@ const getErrorMessage = (error: any): string => {
   return "Something went wrong. Please try again.";
 };
 
+const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
+
 export function TutorBookings({ bookings }: TutorBookingsProps) {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("newest");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const handleConfirmBooking = async (bookingId: string) => {
     setConfirmingId(bookingId);
@@ -147,6 +158,37 @@ export function TutorBookings({ bookings }: TutorBookingsProps) {
     return 0;
   });
 
+  // Pagination calculations
+  const totalItems = sortedBookings.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedBookings = sortedBookings.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filter or sort changes
+  const handleFilterChange = (value: string) => {
+    setFilterStatus(value);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
+
+  // Pagination handlers
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToPreviousPage = () =>
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  const goToNextPage = () =>
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  const goToLastPage = () => setCurrentPage(totalPages);
+
   // Format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -156,6 +198,121 @@ export function TutorBookings({ bookings }: TutorBookingsProps) {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  // Pagination Component
+  const Pagination = () => {
+    if (totalItems === 0) return null;
+
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border/50">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Rows per page:</span>
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={handleItemsPerPageChange}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="text-sm text-muted-foreground">
+          Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
+          {totalItems} bookings
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToFirstPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((page) => {
+                if (totalPages <= 7) return true;
+                if (page === 1 || page === totalPages) return true;
+                if (page >= currentPage - 1 && page <= currentPage + 1)
+                  return true;
+                return false;
+              })
+              .map((page, index, array) => {
+                if (index > 0 && page - array[index - 1] > 1) {
+                  return (
+                    <div
+                      key={`ellipsis-${page}`}
+                      className="flex items-center gap-1"
+                    >
+                      <span className="text-muted-foreground px-1">...</span>
+                      <Button
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </Button>
+                    </div>
+                  );
+                }
+                return (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                );
+              })}
+          </div>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToLastPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -205,7 +362,7 @@ export function TutorBookings({ bookings }: TutorBookingsProps) {
         <Tabs
           defaultValue="all"
           className="w-full sm:w-auto"
-          onValueChange={setFilterStatus}
+          onValueChange={handleFilterChange}
         >
           <TabsList className="grid grid-cols-5 w-full sm:w-auto">
             <TabsTrigger value="all" className="text-xs sm:text-sm">
@@ -226,7 +383,7 @@ export function TutorBookings({ bookings }: TutorBookingsProps) {
           </TabsList>
         </Tabs>
 
-        <Select value={sortBy} onValueChange={setSortBy}>
+        <Select value={sortBy} onValueChange={handleSortChange}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Sort by" />
@@ -242,7 +399,7 @@ export function TutorBookings({ bookings }: TutorBookingsProps) {
 
       {/* Bookings List */}
       <div className="space-y-4">
-        {sortedBookings.map((booking) => {
+        {paginatedBookings.map((booking) => {
           const status =
             statusConfig[booking.status as keyof typeof statusConfig];
           const StatusIcon = status?.icon || AlertCircle;
@@ -396,7 +553,7 @@ export function TutorBookings({ bookings }: TutorBookingsProps) {
           );
         })}
 
-        {sortedBookings.length === 0 && (
+        {paginatedBookings.length === 0 && (
           <Card className="border-border/50 bg-card/50">
             <CardContent className="p-12 text-center">
               <p className="text-muted-foreground">
@@ -406,6 +563,9 @@ export function TutorBookings({ bookings }: TutorBookingsProps) {
           </Card>
         )}
       </div>
+
+      {/* Pagination */}
+      <Pagination />
     </div>
   );
 }

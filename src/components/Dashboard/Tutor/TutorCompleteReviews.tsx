@@ -1,3 +1,4 @@
+// src/components/Dashboard/Tutor/TutorCompleteReviews.tsx
 "use client";
 
 import { useState } from "react";
@@ -10,6 +11,10 @@ import {
   Award,
   TrendingUp,
   Clock,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -108,9 +113,15 @@ const RatingBar = ({
   );
 };
 
+const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
+
 export function TutorCompleteReviews({ tutorProfile }: TutorReviewsPageProps) {
   const [sortBy, setSortBy] = useState("newest");
   const [filterRating, setFilterRating] = useState("all");
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const reviews = tutorProfile?.reviews || [];
   const totalReviews = reviews.length;
@@ -164,6 +175,152 @@ export function TutorCompleteReviews({ tutorProfile }: TutorReviewsPageProps) {
       }
       return 0;
     });
+
+  // Pagination calculations
+  const totalItems = filteredReviews.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedReviews = filteredReviews.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filter or sort changes
+  const handleFilterChange = (value: string) => {
+    setFilterRating(value);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
+
+  // Pagination handlers
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToPreviousPage = () =>
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  const goToNextPage = () =>
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  const goToLastPage = () => setCurrentPage(totalPages);
+
+  // Pagination Component
+  const Pagination = () => {
+    if (totalItems === 0) return null;
+
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border/50">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Rows per page:</span>
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={handleItemsPerPageChange}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="text-sm text-muted-foreground">
+          Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
+          {totalItems} reviews
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToFirstPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((page) => {
+                if (totalPages <= 7) return true;
+                if (page === 1 || page === totalPages) return true;
+                if (page >= currentPage - 1 && page <= currentPage + 1)
+                  return true;
+                return false;
+              })
+              .map((page, index, array) => {
+                if (index > 0 && page - array[index - 1] > 1) {
+                  return (
+                    <div
+                      key={`ellipsis-${page}`}
+                      className="flex items-center gap-1"
+                    >
+                      <span className="text-muted-foreground px-1">...</span>
+                      <Button
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </Button>
+                    </div>
+                  );
+                }
+                return (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                );
+              })}
+          </div>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToLastPage}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -249,7 +406,7 @@ export function TutorCompleteReviews({ tutorProfile }: TutorReviewsPageProps) {
                   <Tabs
                     defaultValue="all"
                     value={filterRating}
-                    onValueChange={setFilterRating}
+                    onValueChange={handleFilterChange}
                   >
                     <TabsList className="grid grid-cols-6 h-9">
                       <TabsTrigger value="all" className="text-xs px-3">
@@ -274,7 +431,7 @@ export function TutorCompleteReviews({ tutorProfile }: TutorReviewsPageProps) {
                   </Tabs>
                 </div>
 
-                <Select value={sortBy} onValueChange={setSortBy}>
+                <Select value={sortBy} onValueChange={handleSortChange}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
@@ -290,7 +447,7 @@ export function TutorCompleteReviews({ tutorProfile }: TutorReviewsPageProps) {
               {/* Reviews List */}
               <AnimatePresence mode="popLayout">
                 <div className="space-y-4">
-                  {filteredReviews.map((review: any, index: number) => (
+                  {paginatedReviews.map((review: any, index: number) => (
                     <motion.div
                       key={review.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -371,6 +528,9 @@ export function TutorCompleteReviews({ tutorProfile }: TutorReviewsPageProps) {
                 </div>
               </AnimatePresence>
 
+              {/* Pagination */}
+              <Pagination />
+
               {filteredReviews.length === 0 && (
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -383,7 +543,7 @@ export function TutorCompleteReviews({ tutorProfile }: TutorReviewsPageProps) {
                   </p>
                   <Button
                     variant="link"
-                    onClick={() => setFilterRating("all")}
+                    onClick={() => handleFilterChange("all")}
                     className="mt-2"
                   >
                     Clear filter
