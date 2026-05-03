@@ -32,7 +32,7 @@ const DEMO_STUDENT = {
 };
 
 const DEMO_TUTOR = {
-  email: "[EMAIL_ADDRESS]",
+  email: "demo-tutor@skill-bridge.com",
   password: "12345678",
   name: "Demo Tutor",
 };
@@ -238,8 +238,8 @@ export default function LoginForm() {
               <User className="h-4 w-4 text-primary" />
             </div>
             <div className="text-left">
-              <p className="text-sm font-semibold">Demo Student</p>
-              <p className="text-xs text-muted-foreground">Try as a student</p>
+              <p className="text-sm font-semibold">Demo Tutor</p>
+              <p className="text-xs text-muted-foreground">Try as a tutor</p>
             </div>
             <Sparkles className="h-4 w-4 text-yellow-500 group-hover:animate-pulse" />
           </div>
@@ -251,6 +251,13 @@ export default function LoginForm() {
         <p className="text-xs text-muted-foreground text-center">
           <span className="font-medium text-foreground">Demo Student:</span>{" "}
           {DEMO_STUDENT.email} | Pass: {DEMO_STUDENT.password}
+        </p>
+      </div>
+      {/* Demo Credentials Info */}
+      <div className="mt-4 p-3 rounded-lg bg-muted/30 border border-border/50">
+        <p className="text-xs text-muted-foreground text-center">
+          <span className="font-medium text-foreground">Demo Tutor:</span>{" "}
+          {DEMO_TUTOR.email} | Pass: {DEMO_TUTOR.password}
         </p>
       </div>
 
