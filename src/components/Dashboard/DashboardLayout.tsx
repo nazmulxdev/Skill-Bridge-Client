@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Calendar,
@@ -23,6 +23,13 @@ import {
   GraduationCapIcon,
   BookAIcon,
   Paperclip,
+  MessageSquare,
+  Bell,
+  HelpCircle,
+  Keyboard,
+  Sun,
+  Moon,
+  Laptop,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -33,11 +40,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
+  DropdownMenuShortcut,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import BrandLogo from "../WebLogo/BrandLogo";
 import { ModeToggle } from "../Theme/ModeToggle";
 import { authClientService } from "@/services/authService.client";
+import { toast } from "sonner";
 
 interface DashboardClientWrapperProps {
   children: React.ReactNode;
@@ -48,6 +58,7 @@ interface DashboardClientWrapperProps {
   userData?: {
     name: string;
     email: string;
+    avatar?: string;
   };
 }
 
@@ -61,18 +72,22 @@ export function DashboardClientWrapper({
 }: DashboardClientWrapperProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [notifications] = useState(3); // This could come from a notifications service
   const pathname = usePathname();
+  const router = useRouter();
 
   // handle logout
-
   const handleSignOut = async () => {
     if (isSigningOut) return;
 
     setIsSigningOut(true);
     try {
       await authClientService.signOut();
+      toast.success("Signed out successfully");
+      router.push("/login");
     } catch (error) {
       console.error("Sign out failed:", error);
+      toast.error("Failed to sign out. Please try again.");
       setIsSigningOut(false);
     }
   };
@@ -107,7 +122,6 @@ export function DashboardClientWrapper({
           href: "/dashboard/student/bookings",
           icon: Clock,
         },
-
         { name: "Reviews", href: "/dashboard/student/reviews", icon: Star },
       ],
       TUTOR: [
@@ -133,7 +147,6 @@ export function DashboardClientWrapper({
           icon: Calendar,
         },
         { name: "Bookings", href: "/dashboard/tutor/bookings", icon: Clock },
-
         { name: "Reviews", href: "/dashboard/tutor/reviews", icon: Star },
       ],
       ADMIN: [
@@ -164,6 +177,31 @@ export function DashboardClientWrapper({
   };
 
   const navigation = getNavigation();
+
+  // Get role-specific profile links
+  const getProfileLinks = () => {
+    const roleProfilePath = {
+      STUDENT: "/dashboard/student/profile",
+      TUTOR: "/dashboard/tutor/profile",
+      ADMIN: "/dashboard/admin/profile",
+    };
+    return (
+      roleProfilePath[userRole as keyof typeof roleProfilePath] || "/dashboard"
+    );
+  };
+
+  // Get role-specific settings links
+  const getSettingsLinks = () => {
+    const roleSettingsPath = {
+      STUDENT: "/dashboard/student/settings",
+      TUTOR: "/dashboard/tutor/settings",
+      ADMIN: "/dashboard/admin/settings",
+    };
+    return (
+      roleSettingsPath[userRole as keyof typeof roleSettingsPath] ||
+      "/dashboard/settings"
+    );
+  };
 
   useEffect(() => {
     setSidebarOpen(false);
@@ -205,29 +243,31 @@ export function DashboardClientWrapper({
           <div className="p-6 border-b border-border/40">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 ring-2 ring-primary/20">
-                <AvatarFallback>
-                  {userData?.name.slice(0, 2) || "NA"}
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                  {userData?.name?.slice(0, 2).toUpperCase() || "NA"}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">
-                  {userData?.name}
+                  {userData?.name || "User"}
                 </p>
-                <p className="text-xs text-muted-foreground capitalize">
-                  {userRole}
+                <p className="text-xs text-muted-foreground truncate">
+                  {userData?.email || "user@example.com"}
                 </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge
+                    variant="outline"
+                    className="text-xs px-2 py-0 bg-primary/10 text-primary border-primary/20 capitalize"
+                  >
+                    {userRole.toLowerCase()}
+                  </Badge>
+                </div>
               </div>
-              <Badge
-                variant="outline"
-                className="bg-success/10 text-success border-success/20"
-              >
-                Online
-              </Badge>
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 p-4">
+          <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -248,11 +288,6 @@ export function DashboardClientWrapper({
                     className={`h-5 w-5 ${isActive ? "text-primary-foreground" : "group-hover:text-primary transition-colors"}`}
                   />
                   <span>{item.name}</span>
-                  {item.name === "Messages" && (
-                    <Badge className="ml-auto bg-destructive/10 text-destructive border-destructive/20">
-                      3
-                    </Badge>
-                  )}
                 </Link>
               );
             })}
@@ -262,10 +297,11 @@ export function DashboardClientWrapper({
           <div className="p-4 border-t border-border/40 space-y-2">
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all hover:cursor-pointer"
+              disabled={isSigningOut}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <LogOut className="h-5 w-5" />
-              <span>Logout</span>
+              <span>{isSigningOut ? "Signing out..." : "Logout"}</span>
             </button>
           </div>
         </div>
@@ -279,7 +315,7 @@ export function DashboardClientWrapper({
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden"
+              className="lg:hidden hover:bg-accent/50"
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className="h-5 w-5" />
@@ -287,24 +323,143 @@ export function DashboardClientWrapper({
             <div className="lg:hidden">
               <BrandLogo />
             </div>
+
+            {/* Page Title - Optional */}
+            <div className="hidden sm:block">
+              <h1 className="text-sm font-medium text-muted-foreground">
+                {navigation.find((item) => item.href === pathname)?.name ||
+                  "Dashboard"}
+              </h1>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Notifications Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative hover:bg-accent/50"
+            >
+              <Bell className="h-5 w-5" />
+              {notifications > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium">
+                  {notifications}
+                </span>
+              )}
+            </Button>
+
+            {/* Theme Toggle */}
             <ModeToggle />
+
             {/* Profile Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="flex items-center gap-2 px-2"
+                  className="flex items-center gap-3 px-2 hover:bg-accent/50"
                 >
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>
-                      {userData?.name.slice(0, 2) || "NA"}
+                  <Avatar className="h-8 w-8 ring-2 ring-primary/20">
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                      {userData?.name?.slice(0, 2).toUpperCase() || "NA"}
                     </AvatarFallback>
                   </Avatar>
+                  <div className="hidden sm:flex flex-col items-start">
+                    <span className="text-sm font-medium">
+                      {userData?.name || "User"}
+                    </span>
+                    <span className="text-xs text-muted-foreground capitalize">
+                      {userRole.toLowerCase()}
+                    </span>
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
                 </Button>
               </DropdownMenuTrigger>
+
+              <DropdownMenuContent
+                className="w-72 p-2"
+                align="end"
+                sideOffset={8}
+              >
+                {/* User Info Header */}
+                <DropdownMenuLabel className="p-0 font-normal">
+                  <div className="flex items-center gap-3 p-3">
+                    <Avatar className="h-12 w-12 ring-2 ring-primary/20">
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
+                        {userData?.name?.slice(0, 2).toUpperCase() || "NA"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">
+                        {userData?.name || "User"}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {userData?.email || "user@example.com"}
+                      </p>
+                      <Badge
+                        variant="outline"
+                        className="mt-1 text-xs px-2 py-0 bg-primary/10 text-primary border-primary/20 capitalize"
+                      >
+                        {userRole.toLowerCase()}
+                      </Badge>
+                    </div>
+                  </div>
+                </DropdownMenuLabel>
+
+                <DropdownMenuSeparator />
+
+                {/* Quick Actions */}
+                <DropdownMenuGroup>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link
+                      href={getProfileLinks()}
+                      className="flex items-center gap-3"
+                    >
+                      <User className="h-4 w-4" />
+                      <span>View Profile</span>
+                      <DropdownMenuShortcut>⌘P</DropdownMenuShortcut>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/dashboard" className="flex items-center gap-3">
+                      <LayoutDashboard className="h-4 w-4" />
+                      <span>Dashboard</span>
+                      <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+
+                <DropdownMenuSeparator />
+
+                {/* Help & Support */}
+                <DropdownMenuGroup>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/about" className="flex items-center gap-3">
+                      <HelpCircle className="h-4 w-4" />
+                      <span>About Us</span>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/contact" className="flex items-center gap-3">
+                      <MessageSquare className="h-4 w-4" />
+                      <span>Contact</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
+                  className="cursor-pointer text-destructive hover:!bg-destructive/10 hover:!text-destructive focus:!bg-destructive/10 focus:!text-destructive"
+                >
+                  <LogOut className="h-4 w-4 mr-3" />
+                  <span>{isSigningOut ? "Signing out..." : "Sign Out"}</span>
+                  <DropdownMenuShortcut>⌘Q</DropdownMenuShortcut>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>

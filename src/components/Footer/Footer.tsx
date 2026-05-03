@@ -26,24 +26,17 @@ export function Footer() {
 
             <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground/90">
               <Link
+                href="/about"
+                className="hover:text-foreground transition-colors"
+              >
+                About Us
+              </Link>
+              <span>•</span>
+              <Link
                 href="/privacy"
                 className="hover:text-foreground transition-colors"
               >
                 Privacy Policy
-              </Link>
-              <span>•</span>
-              <Link
-                href="/terms"
-                className="hover:text-foreground transition-colors"
-              >
-                Terms of Service
-              </Link>
-              <span>•</span>
-              <Link
-                href="/cookies"
-                className="hover:text-foreground transition-colors"
-              >
-                Cookie Policy
               </Link>
               <span>•</span>
               <Link

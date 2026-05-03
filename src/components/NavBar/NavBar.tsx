@@ -10,7 +10,9 @@ import { SignOutButton } from "../AuthLayout/SignoutButton";
 const navLinks = [
   { name: "Home", href: "/" },
   { name: "Tutors", href: "/tutors" },
+  { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
+  { name: "Privacy Policy", href: "/privacy" },
 ];
 
 export default async function Navbar() {
