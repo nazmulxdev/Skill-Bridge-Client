@@ -317,7 +317,7 @@ export function Hero() {
           {/* Slide Indicators */}
           <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/50 backdrop-blur-sm border border-border/50">
             {slides.map((_, index) => (
-              <button
+              <Button
                 key={index}
                 onClick={() => goToSlide(index)}
                 className={cn(

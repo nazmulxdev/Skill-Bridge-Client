@@ -30,6 +30,16 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
 
 interface StudentDashboardClientProps {
   student: any;
@@ -61,6 +71,14 @@ const statusConfig = {
     color: "text-blue-600 bg-blue-500/10 border-blue-500/20",
     badge: "bg-blue-500/10 text-blue-600 border-blue-500/20",
   },
+};
+
+// Chart colors matching theme
+const CHART_COLORS = {
+  warning: "hsl(45 93% 47%)", // yellow
+  primary: "hsl(var(--primary))",
+  success: "hsl(142 71% 45%)", // green
+  destructive: "hsl(0 84% 60%)", // red
 };
 
 // Helper to format date
@@ -95,6 +113,8 @@ export function DashboardRootPageClient({
     student.bookings?.filter((b: any) => b.status === "CONFIRM").length || 0;
   const completedBookings =
     student.bookings?.filter((b: any) => b.status === "COMPLETE").length || 0;
+  const cancelledBookings =
+    student.bookings?.filter((b: any) => b.status === "CANCELLED").length || 0;
 
   const totalReviews = student.reviews?.length || 0;
   const averageRating =
@@ -116,6 +136,18 @@ export function DashboardRootPageClient({
   const uniqueTutors = new Set(
     student.bookings?.map((b: any) => b.tutorProfile?.userId),
   ).size;
+
+  // Booking status distribution for chart
+  const bookingStatusData = [
+    { name: "Pending", value: pendingBookings, fill: CHART_COLORS.warning },
+    { name: "Confirmed", value: confirmedBookings, fill: CHART_COLORS.primary },
+    { name: "Completed", value: completedBookings, fill: CHART_COLORS.success },
+    {
+      name: "Cancelled",
+      value: cancelledBookings,
+      fill: CHART_COLORS.destructive,
+    },
+  ];
 
   // Get upcoming sessions (confirmed and future)
   const upcomingSessions =
@@ -153,12 +185,12 @@ export function DashboardRootPageClient({
   return (
     <div className="w-full min-h-screen bg-background">
       {/* Mobile Sidebar Toggle */}
-      <button
+      <Button
         onClick={() => setSidebarOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-40 p-2 rounded-lg bg-background border border-border shadow-md"
       >
         <Menu className="h-5 w-5" />
-      </button>
+      </Button>
 
       {/* Sidebar Overlay */}
       {sidebarOpen && (
@@ -349,6 +381,55 @@ export function DashboardRootPageClient({
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Booking Status Chart */}
+              {totalBookings > 0 && (
+                <Card className="border-border/50">
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      Your Booking Status
+                    </CardTitle>
+                    <CardDescription>
+                      Distribution of your sessions by status
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={bookingStatusData}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          className="stroke-muted"
+                        />
+                        <XAxis
+                          dataKey="name"
+                          tick={{ fontSize: 12 }}
+                          className="text-muted-foreground"
+                        />
+                        <YAxis
+                          tick={{ fontSize: 12 }}
+                          className="text-muted-foreground"
+                          allowDecimals={false}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                          }}
+                        />
+                        <Bar dataKey="value" name="Sessions">
+                          {bookingStatusData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Upcoming Sessions and Progress */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

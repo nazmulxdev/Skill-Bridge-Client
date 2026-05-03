@@ -1,3 +1,4 @@
+// src/components/Dashboard/Admin/DashboardAdminRoot.tsx
 "use client";
 
 import {
@@ -20,9 +21,7 @@ import {
   GraduationCap,
   BookOpen,
   Calendar,
-  Star,
   Award,
-  TrendingUp,
   UserCheck,
   UserX,
   TrendingDown,
@@ -32,11 +31,22 @@ import {
   XCircle,
   AlertCircle,
   Wallet,
-  BarChart3,
-  PieChart,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
 
 interface User {
   id: string;
@@ -96,6 +106,25 @@ interface DashboardAdminStatsClientProps {
   initialSubjects: Subject[];
 }
 
+// Chart colors – works perfectly in light & dark mode
+const CHART_COLORS = {
+  primary: "hsl(262 83% 58%)", // vivid violet/blue
+  success: "hsl(142 71% 45%)", // green
+  warning: "hsl(45 93% 47%)", // amber
+  destructive: "hsl(0 84% 60%)", // red
+  muted: "hsl(240 5% 64%)", // grey
+};
+
+// For Pie / multi‑series charts
+const PIE_COLORS = [
+  CHART_COLORS.primary,
+  CHART_COLORS.success,
+  CHART_COLORS.warning,
+  CHART_COLORS.destructive,
+  "hsl(190 90% 40%)", // teal
+  "hsl(340 82% 52%)", // pink
+];
+
 export function DashboardAdminRoot({
   initialUsers,
   initialBookings,
@@ -145,6 +174,37 @@ export function DashboardAdminRoot({
       subjects: initialSubjects.length,
     },
   };
+
+  // Chart data for booking status distribution
+  const bookingStatusData = [
+    {
+      name: "Pending",
+      value: stats.bookings.pending,
+      fill: CHART_COLORS.warning,
+    },
+    {
+      name: "Confirmed",
+      value: stats.bookings.confirmed,
+      fill: CHART_COLORS.primary,
+    },
+    {
+      name: "Completed",
+      value: stats.bookings.completed,
+      fill: CHART_COLORS.success,
+    },
+    {
+      name: "Cancelled",
+      value: stats.bookings.cancelled,
+      fill: CHART_COLORS.destructive,
+    },
+  ];
+
+  // Chart data for user role distribution
+  const userRoleData = [
+    { name: "Students", value: stats.users.students },
+    { name: "Tutors", value: stats.users.tutors },
+    { name: "Admins", value: stats.users.admins },
+  ];
 
   // Get recent users (last 10)
   const recentUsers = [...initialUsers]
@@ -417,7 +477,7 @@ export function DashboardAdminRoot({
                 <p className="text-xs text-muted-foreground">Categories</p>
                 <p className="text-lg font-bold">{stats.content.categories}</p>
               </div>
-              <PieChart className="h-8 w-8 text-blue-500/20" />
+              <div className="h-8 w-8 text-blue-500/20" />
             </div>
           </CardContent>
         </Card>
@@ -429,8 +489,109 @@ export function DashboardAdminRoot({
                 <p className="text-xs text-muted-foreground">Subjects</p>
                 <p className="text-lg font-bold">{stats.content.subjects}</p>
               </div>
-              <BarChart3 className="h-8 w-8 text-purple-500/20" />
+              <div className="h-8 w-8 text-purple-500/20" />
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+        {/* Booking Status Bar Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">
+              Booking Status Distribution
+            </CardTitle>
+            <CardDescription>Current breakdown of all bookings</CardDescription>
+          </CardHeader>
+          <CardContent className="h-80">
+            {stats.bookings.total > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={bookingStatusData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="stroke-muted"
+                  />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 12 }}
+                    className="text-muted-foreground"
+                  />
+                  <YAxis
+                    tick={{ fontSize: 12 }}
+                    className="text-muted-foreground"
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Bar dataKey="value" name="Count">
+                    {bookingStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                No booking data available
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* User Role Pie Chart */}
+        {/* User Role Pie Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">User Roles</CardTitle>
+            <CardDescription>Distribution of platform users</CardDescription>
+          </CardHeader>
+          <CardContent className="h-80">
+            {stats.users.total > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={userRoleData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                    label={({ name, percent }) =>
+                      `${name} ${(Number(percent) * 100).toFixed(0)}%`
+                    }
+                  >
+                    {userRoleData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={PIE_COLORS[index % PIE_COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                No user data available
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

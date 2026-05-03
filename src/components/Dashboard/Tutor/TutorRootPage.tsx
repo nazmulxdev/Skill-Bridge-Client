@@ -24,6 +24,16 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
 
 interface TutorRootDashboardProps {
   userData: any;
@@ -90,6 +100,25 @@ export function TutorRootPage({
 
   const totalStudents =
     new Set(tutorProfile?.bookings?.map((b: any) => b.studentId)).size || 0;
+
+  // Chart data for booking status distribution
+  const CHART_COLORS = {
+    warning: "hsl(45 93% 47%)",
+    primary: "hsl(var(--primary))",
+    success: "hsl(142 71% 45%)",
+    destructive: "hsl(0 84% 60%)",
+  };
+
+  const bookingStatusData = [
+    { name: "Pending", value: pendingSessions, fill: CHART_COLORS.warning },
+    { name: "Confirmed", value: confirmedSessions, fill: CHART_COLORS.primary },
+    { name: "Completed", value: completedSessions, fill: CHART_COLORS.success },
+    {
+      name: "Cancelled",
+      value: cancelledSessions,
+      fill: CHART_COLORS.destructive,
+    },
+  ];
 
   // Get recent bookings
   const recentBookings =
@@ -313,6 +342,50 @@ export function TutorRootPage({
           </CardContent>
         </Card>
       </div>
+
+      {/* Booking Status Chart */}
+      {totalSessions > 0 && (
+        <Card className="border-border/50">
+          <CardHeader>
+            <CardTitle className="text-lg">Your Booking Status</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Distribution of your sessions by status
+            </p>
+          </CardHeader>
+          <CardContent className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={bookingStatusData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 12 }}
+                  className="text-muted-foreground"
+                />
+                <YAxis
+                  tick={{ fontSize: 12 }}
+                  className="text-muted-foreground"
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Bar dataKey="value" name="Sessions">
+                  {bookingStatusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
